@@ -38,7 +38,7 @@ DigitalOut p_heater0(HEATER_0_PIN);
 DigitalOut p_heater_bed(HEATER_BED_PIN);//heated-build-platform
 
 AnalogIn p_temp0(TEMP_0_PIN);
-AnalogIn p_temp1(TEMP_BED_PIN);//heated-build-platform thermistor
+AnalogIn p_temp_bed(TEMP_BED_PIN);//heated-build-platform thermistor
 
 char print_buffer[100];
 
@@ -84,8 +84,10 @@ void sei()
 
 void delay_ms(int ms)
 {
-
+	wait_ms(ms);
 }
+
+MarlinSerial MSerial;
 
 int main() {
     timer.start();

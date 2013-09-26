@@ -17,8 +17,8 @@
 #define SERIAL_PORT 0
 
 // This determines the communication speed of the printer
-#define BAUDRATE 250000
-//#define BAUDRATE 115200
+//#define BAUDRATE 250000
+#define BAUDRATE 115200
 
 //// The following define selects which electronics board you have. Please choose the one that matches your setup
 // 10 = Gen7 custom (Alfons3 Version) "https://github.com/Alfons3/Generation_7_Electronics"
@@ -100,10 +100,8 @@
 // 52 is 200k thermistor - ATC Semitec 204GT-2 (1k pullup)
 // 55 is 100k thermistor - ATC Semitec 104GT-2 (Used in ParCan) (1k pullup)
 
-#define TEMP_SENSOR_0 -1
-#define TEMP_SENSOR_1 -1
-#define TEMP_SENSOR_2 0
-#define TEMP_SENSOR_BED 0
+#define THERMISTORHEATER 1
+#define THERMISTORBED 1 // I use a custom resistor voltage devider network with a 100k vDividerresitor!
 
 // This makes temp sensor 1 a redundant sensor for sensor 0. If the temperatures difference between these sensors is to high the print will be aborted.
 //#define TEMP_SENSOR_1_AS_REDUNDANT
@@ -313,12 +311,14 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {78.7402,78.7402,200.0*8/3,760*1.1}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {500, 500, 5, 25}    // (mm/sec)
-#define DEFAULT_MAX_ACCELERATION      {9000,9000,100,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556,35.446,1280.0,368.421}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {41.667, 50, 1, 3.333}    // (mm/sec)
+//float max_feedrate[] ={2500, 3000, 60, 200}; //{200000, 200000, 240, 500000}; //X=200, Y=230, Z=230
+#define DEFAULT_MAX_ACCELERATION      {500,500,50,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+//long max_acceleration_units_per_sq_second[] = {500,500,50,10000}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 
-#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
+#define DEFAULT_ACCELERATION          500    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  500   // X, Y, Z and E max acceleration in mm/s^2 for retracts
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
 // The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
@@ -334,17 +334,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 //===========================================================================
 //=============================Additional Features===========================
 //===========================================================================
-
-// EEPROM
-// the microcontroller can store settings in the EEPROM, e.g. max velocity...
-// M500 - stores paramters in EEPROM
-// M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
-// M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
-//define this to enable eeprom support
-//#define EEPROM_SETTINGS
-//to disable EEPROM Serial responses and decrease program space by ~1700 byte: comment this out:
-// please keep turned on if you can.
-//#define EEPROM_CHITCHAT
 
 // Preheat Constants
 #define PLA_PREHEAT_HOTEND_TEMP 180
@@ -376,27 +365,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // SF send wrong arc g-codes when using Arc Point as fillet procedure
 //#define SF_ARC_FIX
 
-/*********************************************************************\
-* R/C SERVO support
-* Sponsored by TrinityLabs, Reworked by codexmas
-**********************************************************************/
-
-// Number of servos
-//
-// If you select a configuration below, this will receive a default value and does not need to be set manually
-// set it manually if you have more servos than extruders and wish to manually control some
-// leaving it undefined or defining as 0 will disable the servo subsystem
-// If unsure, leave commented / disabled
-//
-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
-
-// Servo Endstops
-//
-// This allows for servo actuated endstops, primary usage is for the Z Axis to eliminate calibration or bed height changes.
-// Use M206 command to correct for switch height offset to actual nozzle height. Store that setting with M500.
-//
-//#define SERVO_ENDSTOPS {-1, -1, 0} // Servo index for X, Y, Z. Disable with -1
-//#define SERVO_ENDSTOP_ANGLES {0,0, 0,0, 70,0} // X,Y,Z Axis Extend and Retract angles
 
 #include "Configuration_adv.h"
 #include "thermistortables.h"

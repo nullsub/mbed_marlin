@@ -49,11 +49,6 @@
 #define EXTRUDER_RUNOUT_SPEED 1500.  //extrusion speed
 #define EXTRUDER_RUNOUT_EXTRUDE 100
 
-//These defines help to calibrate the AD595 sensor in case you get wrong temperature measurements.
-//The measured temperature is defined as "actualTemp = (measuredTemp * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET"
-#define TEMP_SENSOR_AD595_OFFSET 0.0
-#define TEMP_SENSOR_AD595_GAIN   1.0
-
 //This is for controlling a fan to cool down the stepper drivers
 //it will turn on when any driver is enabled
 //and turn off after the set amount of seconds from last driver being disabled again
@@ -336,7 +331,7 @@ const unsigned int dropsegments=5; //everything with less than this number of st
 
 //The ASCII buffer for recieving from the serial:
 #define MAX_CMD_SIZE 96
-#define BUFSIZE 4
+#define BUFSIZE 10
 
 
 // Firmware based and LCD controled retract

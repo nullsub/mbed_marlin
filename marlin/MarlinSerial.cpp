@@ -27,14 +27,13 @@
 
 MarlinSerial::MarlinSerial()
 {
-	pc = new SerialBuffered( 4096, USBTX, USBRX);
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
 
 void MarlinSerial::begin(long baud)
 {
-
+	pc = new SerialBuffered( 4096, USBTX, USBRX);
 }
 
 int MarlinSerial::available()
@@ -46,12 +45,6 @@ void MarlinSerial::end()
 {
 }
 
-
-
-int MarlinSerial::peek(void)
-{
-	return 0;
-}
 
 int MarlinSerial::read(void)
 {
@@ -230,6 +223,3 @@ void MarlinSerial::printFloat(double number, uint8_t digits)
 		remainder -= toPrint;
 	}
 }
-// Preinstantiate Objects //////////////////////////////////////////////////////
-
-MarlinSerial MSerial;

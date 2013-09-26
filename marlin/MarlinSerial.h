@@ -53,6 +53,7 @@ class MarlinSerial //: public Stream
 
     FORCE_INLINE void write(uint8_t c)
     {
+	pc->putc(c);
     }
 
 

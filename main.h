@@ -35,7 +35,7 @@ extern DigitalOut p_heater0;
 extern DigitalOut p_heater_bed;;
 
 extern AnalogIn p_temp0;
-extern AnalogIn p_temp1;
+extern AnalogIn p_temp_bed;
 
 int micros();
 

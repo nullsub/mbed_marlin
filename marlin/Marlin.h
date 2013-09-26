@@ -4,6 +4,9 @@
 #ifndef MARLIN_H
 #define MARLIN_H
 
+
+#define BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE 1
+
 #define  FORCE_INLINE __attribute__((always_inline)) inline
 #define PROGMEM
 #define PSTR
@@ -11,6 +14,7 @@
 #define p_e0_dir p_e_dir
 #define p_e0_step p_e_step
 #define LOW 0
+#define HIGH 1
 
 #include <math.h>
 #include <stdio.h>
@@ -25,23 +29,17 @@
 #include "MarlinSerial.h"
 #include "main.h"
 
-#ifndef cbi
-#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
-
 #define LCD_MESSAGEPGM(a)
 #define LCD_ALERTMESSAGEPGM(a)
 #define MYSERIAL MSerial
 
 #define SERIAL_PROTOCOL(x) (MYSERIAL.print(x))
 #define SERIAL_PROTOCOL_F(x,y) (MYSERIAL.print(x,y))
-#define SERIAL_PROTOCOLPGM(x) (serialprintPGM(PSTR(x)))
-#define SERIAL_PROTOCOLLN(x) (MYSERIAL.print(x),MYSERIAL.write('\n'))
-#define SERIAL_PROTOCOLLNPGM(x) (serialprintPGM(PSTR(x)),MYSERIAL.write('\n'))
+#define SERIAL_PROTOCOLPGM(x) (MYSERIAL.print(x))
+#define SERIAL_PROTOCOLLN(x) (MYSERIAL.print(x),MYSERIAL.write("\r\n"))
+#define SERIAL_PROTOCOLLNPGM(x) (MYSERIAL.print(x), MYSERIAL.write("\r\n"))
 
+#define serialprintPGM(x) (MYSERIAL.print(x), MYSERIAL.write("\r\n"))
 
 const char errormagic[] PROGMEM ="Error:";
 const char echomagic[] PROGMEM ="echo:";
@@ -62,14 +60,6 @@ const char echomagic[] PROGMEM ="echo:";
 void serial_echopair_P(const char *s_P, float v);
 void serial_echopair_P(const char *s_P, double v);
 void serial_echopair_P(const char *s_P, unsigned long v);
-
-
-//things to write to serial from Programmemory. saves 400 to 2k of RAM.
-FORCE_INLINE void serialprintPGM(const char *str)
-{
-	//MarlinSerial Println
-}
-
 
 void setup();
 void loop();

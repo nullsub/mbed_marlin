@@ -1,7 +1,7 @@
 /* mbed Microcontroller Library - Timer
  * Copyright (c) 2007-2009 ARM Limited. All rights reserved.
- */ 
- 
+ */
+
 #ifndef MBED_TIMER_H
 #define MBED_TIMER_H
 
@@ -13,17 +13,17 @@
 namespace mbed {
 
 /* Class: Timer
- *  A general purpose timer 
+ *  A general purpose timer
  *
  * Example:
  * > // Count the time to toggle a LED
  * >
  * > #include "mbed.h"
- * > 
+ * >
  * > Timer timer;
  * > DigitalOut led(LED1);
  * > int begin, end;
- * > 
+ * >
  * > int main() {
  * >     timer.start();
  * >     begin = timer.read_us();
@@ -37,19 +37,19 @@ class Timer : public Base {
 public:
 
     Timer(const char *name = NULL);
-    
+
     /* Function: start
      *  Start the timer
      */
-    void start(); 
+    void start();
 
     /* Function: stop
      *  Stop the timer
      */
-    void stop(); 
+    void stop();
 
     /* Function: reset
-     *  Reset the timer to 0. 
+     *  Reset the timer to 0.
      *
      * If it was already counting, it will continue
      */
@@ -70,7 +70,7 @@ public:
      */
     int read_us();
 
-#ifdef MBED_OPERATORS 
+#ifdef MBED_OPERATORS
     operator float();
 #endif
 
@@ -81,11 +81,11 @@ public:
 
 protected:
 
-    int slicetime();    
+    int slicetime();
     int _running;          // whether the timer is running
     unsigned int _start;   // the start time of the latest slice
     int _time;             // any accumulated time from previous slices
-    
+
 };
 
 } // namespace mbed

@@ -26,13 +26,13 @@
 #include "planner.h"
 #include "temperature.h"
 #include "language.h"
-#include "LPC17xx.h"
+#include "mbed.h"
 #include "speed_lookuptable.h"
 #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
 #include <SPI.h>
 #endif
 
-
+Ticker stepper_timer;
 //===========================================================================
 //=============================public variables  ============================
 //===========================================================================
@@ -241,9 +241,9 @@ void step_wait(){
 }
 
 
-FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
-  unsigned short timer;
-  if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+unsigned int calc_timer(unsigned int step_rate) {
+  unsigned int timer = 1000000/step_rate; //pps to us for the timer
+  /*if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
 
   if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
     step_rate = (step_rate >> 2)&0x3fff;
@@ -271,8 +271,8 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     table_address += ((step_rate)>>1) & 0xfffc;
     timer = (unsigned short)(table_address[0]);
     timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
-  }
-  if(timer < 100) { timer = 100; MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); }//(20kHz this should never happen)
+  }*/
+ // if(timer < 100) { timer = 100; MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); }//(20kHz this should never happen)
   return timer;
 }
 
@@ -301,16 +301,14 @@ void trapezoid_generator_reset() {
 //    SERIAL_ECHOPGM("advance rate :");
 //    SERIAL_ECHO(current_block->advance_rate/256.0);
 //    SERIAL_ECHOPGM("initial advance :");
-//  SERIAL_ECHO(current_block->initial_advance/256.0);
+//    SERIAL_ECHO(current_block->initial_advance/256.0);
 //    SERIAL_ECHOPGM("final advance :");
 //    SERIAL_ECHOLN(current_block->final_advance/256.0);
 
 }
 
-void TIMER1_IRQHandler_grbl()
+void stepper_int_handler()
 {
-	LPC_TIM1->IR |= 1 << 0; //clear int
-
 	if(!do_int)
 		return;
 
@@ -330,7 +328,7 @@ void TIMER1_IRQHandler_grbl()
       #ifdef Z_LATE_ENABLE
         if(current_block->steps_z > 0) {
           enable_z();
-          LPC_TIM1->MR0 = 2000; //1ms wait
+		attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
           return;
         }
       #endif
@@ -340,7 +338,7 @@ void TIMER1_IRQHandler_grbl()
 //      #endif
     }
     else {
-        LPC_TIM1->MR0=2000; // 1kHz.
+	stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
     }
   }
 
@@ -531,10 +529,6 @@ void TIMER1_IRQHandler_grbl()
 
 
     for(int8_t i=0; i < step_loops; i++) { // Take multiple steps per interrupt (For high speed moves)
-      #ifndef AT90USB
-      MSerial.checkRx(); // Check for serial chars.
-      #endif
-
       #ifdef ADVANCE
       counter_e += current_block->steps_e;
       if (counter_e > 0) {
@@ -633,7 +627,7 @@ void TIMER1_IRQHandler_grbl()
 
       // step_rate to timer interval
       timer = calc_timer(acc_step_rate);
-      LPC_TIM1->MR0 = timer;
+	stepper_timer.attach_us(stepper_int_handler, timer);
       acceleration_time += timer;
       #ifdef ADVANCE
         for(int8_t i=0; i < step_loops; i++) {
@@ -662,7 +656,7 @@ void TIMER1_IRQHandler_grbl()
 
       // step_rate to timer interval
       timer = calc_timer(step_rate);
-      LPC_TIM1->MR0 = timer;
+	stepper_timer.attach_us(stepper_int_handler, timer);
       deceleration_time += timer;
       #ifdef ADVANCE
         for(int8_t i=0; i < step_loops; i++) {
@@ -675,7 +669,7 @@ void TIMER1_IRQHandler_grbl()
       #endif //ADVANCE
     }
     else {
-      LPC_TIM1->MR0 = OCR1A_nominal;
+	stepper_timer.attach_us(stepper_int_handler, OCR1A_nominal);
       // ensure we're running at the correct step rate, even if we just came off an acceleration
       step_loops = step_loops_nominal;
     }
@@ -855,30 +849,7 @@ void st_init()
   #endif
 
 
-//WE need a 2MHz timer!
-	const unsigned long TCR_COUNT_RESET = 2;
-	const unsigned long TCR_COUNT_ENABLE = 0x01;
-
-	/* Power up and feed the timer. */
-	LPC_SC->PCONP |= (1<<2);
-	LPC_SC->PCLKSEL0 |= (0x03<<4); // PLCK/8
-
-	LPC_TIM1->PR =  8; // the slowest will be MINIMUM_STEPS_PER_MINUTE
-
-	 //int when mr0 matches , reset after match
-	LPC_TIM1->MCR |= ((1<<0)|(1<<1));
-
-	//set_step_events_per_minute(6000);
-
-	/* Reset Timer 0 */
-	LPC_TIM1->TCR = TCR_COUNT_RESET;
-
-	NVIC_EnableIRQ(TIMER1_IRQn); // Enable timer interrupt
-
-	/* Start the counter. */
-	LPC_TIM1->TCR = TCR_COUNT_ENABLE;
-
-
+	stepper_timer.attach_us(stepper_int_handler,2000);
 
   ENABLE_STEPPER_DRIVER_INTERRUPT();
 
