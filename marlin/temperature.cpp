@@ -33,7 +33,6 @@ http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
 #include "temperature.h"
 #include "mbed.h"
 
-
 Ticker temp_timer;
 void temp_int();
 int constrain(int val, int min, int max)
@@ -206,11 +205,7 @@ void PID_autotune(float temp, int extruder, int ncycles)
 		bias = d = (PID_MAX)/2;
 	}
 
-
-
-
 	for(;;) {
-
 		if(temp_meas_ready == true) { // temp sample ready
 			updateTemperaturesFromRawValues();
 
@@ -573,7 +568,7 @@ void manage_heater()
 	else
 	{
 		soft_pwm_bed = 0;
-		p_heater_bed = LOW; //WRITE(HEATER_BED_PIN,LOW);
+		p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
 	}
 #else //#ifdef BED_LIMIT_SWITCHING
 	// Check if temperature is within the correct band
@@ -591,7 +586,7 @@ void manage_heater()
 	else
 	{
 		soft_pwm_bed = 0;
-		p_heater_bed = LOW; //WRITE(HEATER_BED_PIN,LOW);
+		p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
 	}
 #endif
 #endif
@@ -847,7 +842,7 @@ void disable_heater()
 	target_temperature[0]=0;
 	soft_pwm[0]=0;
 #if defined(HEATER_0_PIN) && HEATER_0_PIN > -1
-	p_heater0 = LOW; //WRITE(HEATER_0_PIN,LOW);
+	p_heater0 = 0; //WRITE(HEATER_0_PIN,LOW);
 #endif
 #endif
 
@@ -855,7 +850,7 @@ void disable_heater()
 	target_temperature[1]=0;
 	soft_pwm[1]=0;
 #if defined(HEATER_1_PIN) && HEATER_1_PIN > -1
-	p_heater1 = low; //WRITE(HEATER_1_PIN,LOW);
+	p_heater1 = 0; //WRITE(HEATER_1_PIN,LOW);
 #endif
 #endif
 
@@ -863,7 +858,7 @@ void disable_heater()
 	target_temperature[2]=0;
 	soft_pwm[2]=0;
 #if defined(HEATER_2_PIN) && HEATER_2_PIN > -1
-	p_heater2 = LOW; //WRITE(HEATER_2_PIN,LOW);
+	p_heater2 = 0; //WRITE(HEATER_2_PIN,LOW);
 #endif
 #endif
 
@@ -871,7 +866,7 @@ void disable_heater()
 	target_temperature_bed=0;
 	soft_pwm_bed=0;
 #if defined(HEATER_BED_PIN) && HEATER_BED_PIN > -1
-	p_heater_bed = LOW; //WRITE(HEATER_BED_PIN,LOW);
+	p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
 #endif
 #endif
 }
@@ -992,8 +987,8 @@ void temp_int()
 			break;
 		case 1: // Measure TEMP_0
 #if defined(TEMP_0_PIN) && (TEMP_0_PIN > -1)
-			raw_temp_0_value += (int) (p_temp0.read()*1023.0f) ;
-			    raw_temp_0_value = 1023 - raw_temp_0_value;
+			raw_temp_0_value = 1023 - (int) (p_temp0.read()*1023.0f) ;
+			//raw_temp_0_value += 1023 - (int) (p_temp0.read()*1023.0f) ;
 #endif
 			temp_state = 2;
 			break;
@@ -1013,8 +1008,8 @@ void temp_int()
 			break;
 		case 3: // Measure TEMP_BED
 #if defined(TEMP_BED_PIN) && (TEMP_BED_PIN > -1)
-			raw_temp_bed_value += (int)(p_temp_bed.read()*1023.0f);;
-			    raw_temp_bed_value = 1023 - raw_temp_bed_value;
+			raw_temp_bed_value = 1023 - (int)(p_temp_bed.read()*1023.0f);
+			//raw_temp_bed_value += 1023 - (int)(p_temp_bed.read()*1023.0f);
 #endif
 			temp_state = 4;
 			break;
