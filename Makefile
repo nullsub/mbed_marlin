@@ -5,7 +5,6 @@ GCC_BIN =
 PROJECT = mbed_marlin
 OBJECTS += ./main.o ./SerialBuffered.o 
 OBJECTS += marlin/Marlin_main.o
-OBJECTS += marlin/MarlinSerial.o
 OBJECTS += marlin/motion_control.o
 OBJECTS += marlin/planner.o
 OBJECTS += marlin/stepper.o

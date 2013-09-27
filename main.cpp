@@ -3,8 +3,6 @@
 #include "math.h"
 #include "marlin/Marlin.h"
 
-#include "SerialBuffered.h"
-
 DigitalOut heat0_led(LED1);//x
 DigitalOut heat1_led(LED2);//y
 //DigitalOut led3(LED3);//z
@@ -40,10 +38,11 @@ DigitalOut p_heater_bed(HEATER_BED_PIN);//heated-build-platform
 AnalogIn p_temp0(TEMP_0_PIN);
 AnalogIn p_temp_bed(TEMP_BED_PIN);//heated-build-platform thermistor
 
-char print_buffer[100];
+SerialBuffered serial_buffered( 4096, USBTX, USBRX);
 
 Timer timer;
 /*
+char print_buffer[100];
 void print_int(int var) {
     sprintf(print_buffer,"%d",var);
     print_string(print_buffer);
@@ -71,26 +70,17 @@ unsigned int millis() {
     return (unsigned int)(micros()/1000);
 }
 
-
-void cli()
-{
-
-}
-
-void sei()
-{
-
-}
-
 void delay_ms(int ms)
 {
 	wait_ms(ms);
 }
 
-MarlinSerial MSerial;
+void cli(){}
+void sei(){}
 
 int main() {
     timer.start();
+	serial_buffered.baud(BAUDRATE);
     setup();
     while (1) {
         loop();

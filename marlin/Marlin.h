@@ -26,12 +26,11 @@
 #include "ConfigurationStore.h"
 #include "pins.h"
 
-#include "MarlinSerial.h"
 #include "main.h"
 
 #define LCD_MESSAGEPGM(a)
 #define LCD_ALERTMESSAGEPGM(a)
-#define MYSERIAL MSerial
+#define MYSERIAL serial_buffered
 
 #define SERIAL_PROTOCOL(x) (MYSERIAL.print(x))
 #define SERIAL_PROTOCOL_F(x,y) (MYSERIAL.print(x,y))

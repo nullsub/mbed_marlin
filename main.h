@@ -2,6 +2,9 @@
 #define MAIN_H_
 
 #include "mbed.h"
+#include "SerialBuffered.h"
+
+extern SerialBuffered serial_buffered;
 
 extern DigitalOut heat0_led;
 extern DigitalOut heat1_led;

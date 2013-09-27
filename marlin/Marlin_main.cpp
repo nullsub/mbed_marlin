@@ -59,8 +59,6 @@ float max_length[3] = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 float home_dir[3] = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 float home_retract_mm[3] = { X_HOME_RETRACT_MM, Y_HOME_RETRACT_MM, Z_HOME_RETRACT_MM };
 
-
-
 // Extruder offset
 #if EXTRUDERS > 1
 #ifndef DUAL_X_CARRIAGE
@@ -76,10 +74,6 @@ float extruder_offset[NUM_EXTRUDER_OFFSETS][EXTRUDERS] = {
 #endif
 uint8_t active_extruder = 0;
 int fanSpeed=0;
-#ifdef BARICUDA
-int ValvePressure=0;
-int EtoPPressure=0;
-#endif
 
 #ifdef FWRETRACT
   bool autoretract_enabled=true;
@@ -206,14 +200,6 @@ void setup_killpin()
   #endif
 }
 
-void setup_photpin()
-{
-  #if defined(PHOTOGRAPH_PIN) && PHOTOGRAPH_PIN > -1
-    SET_OUTPUT(PHOTOGRAPH_PIN);
-    WRITE(PHOTOGRAPH_PIN, LOW);
-  #endif
-}
-
 void setup_powerhold()
 {
   #if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
@@ -238,7 +224,6 @@ void setup()
 {
   setup_killpin();
   setup_powerhold();
-  MYSERIAL.begin(BAUDRATE);
   SERIAL_PROTOCOLLNPGM("start");
   SERIAL_ECHO_START;
 
@@ -267,14 +252,11 @@ void setup()
 
   // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
   Config_RetrieveSettings();
-
+/*
   tp_init();    // Initialize temperature loop
   plan_init();  // Initialize planner;
   st_init();    // Initialize stepper, this enables interrupts!
-  setup_photpin();
-
-  delay_ms(1000);	// wait 1sec to display the splash screen
-
+*/
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
   #endif
@@ -292,15 +274,17 @@ void loop()
     bufindr = (bufindr + 1)%BUFSIZE;
   }
   //check heater every n milliseconds
-  manage_heater();
+  /*
+	manage_heater();
   manage_inactivity();
   checkHitEndstops();
+*/
 }
 
 void get_command()
 {
-  while( MYSERIAL.available() > 0  && buflen < BUFSIZE) {
-    serial_char = MYSERIAL.read();
+  while( MYSERIAL.readable() && buflen < BUFSIZE) {
+    serial_char = MYSERIAL.getc();
     if(serial_char == '\n' ||
        serial_char == '\r' ||
        (serial_char == ':' && comment_mode == false) ||
@@ -996,37 +980,6 @@ void process_commands()
         fanSpeed = 0;
         break;
     #endif //FAN_PIN
-    #ifdef BARICUDA
-      // PWM for HEATER_1_PIN
-      #if defined(HEATER_1_PIN) && HEATER_1_PIN > -1
-        case 126: //M126 valve open
-          if (code_seen('S')){
-             ValvePressure=constrain(code_value(),0,255);
-          }
-          else {
-            ValvePressure=255;
-          }
-          break;
-        case 127: //M127 valve closed
-          ValvePressure = 0;
-          break;
-      #endif //HEATER_1_PIN
-
-      // PWM for HEATER_2_PIN
-      #if defined(HEATER_2_PIN) && HEATER_2_PIN > -1
-        case 128: //M128 valve open
-          if (code_seen('S')){
-             EtoPPressure=constrain(code_value(),0,255);
-          }
-          else {
-            EtoPPressure=255;
-          }
-          break;
-        case 129: //M129 valve closed
-          EtoPPressure = 0;
-          break;
-      #endif //HEATER_2_PIN
-    #endif
 
     #if defined(PS_ON_PIN) && PS_ON_PIN > -1
       case 80: // M80 - Turn on Power Supply
@@ -1328,37 +1281,6 @@ void process_commands()
       }
     }
     break;
-
-    #if NUM_SERVOS > 0
-    case 280: // M280 - set servo position absolute. P: servo index, S: angle or microseconds
-      {
-        int servo_index = -1;
-        int servo_position = 0;
-        if (code_seen('P'))
-          servo_index = code_value();
-        if (code_seen('S')) {
-          servo_position = code_value();
-          if ((servo_index >= 0) && (servo_index < NUM_SERVOS)) {
-            servos[servo_index].write(servo_position);
-          }
-          else {
-            SERIAL_ECHO_START;
-            SERIAL_ECHO("Servo ");
-            SERIAL_ECHO(servo_index);
-            SERIAL_ECHOLN(" out of range");
-          }
-        }
-        else if (servo_index >= 0) {
-          SERIAL_PROTOCOL(MSG_OK);
-          SERIAL_PROTOCOL(" Servo ");
-          SERIAL_PROTOCOL(servo_index);
-          SERIAL_PROTOCOL(": ");
-          SERIAL_PROTOCOL(servos[servo_index].read());
-          SERIAL_PROTOCOLLN("");
-        }
-      }
-      break;
-    #endif // NUM_SERVOS > 0
 
     #if LARGE_FLASH == true && ( BEEPER > 0 || defined(ULTRALCD) )
     case 300: // M300

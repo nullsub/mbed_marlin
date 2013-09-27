@@ -214,12 +214,8 @@
 //===========================================================================
 //=============================Mechanical Settings===========================
 //===========================================================================
-
-// Uncomment the following line to enable CoreXY kinematics
-// #define COREXY
-
 // coarse Endstop Settings
-#define ENDSTOPPULLUPS // Comment this out (using // at the start of the line) to disable the endstop pullup resistors
+//#define ENDSTOPPULLUPS // Comment this out (using // at the start of the line) to disable the endstop pullup resistors
 
 #ifndef ENDSTOPPULLUPS
   // fine Enstop settings: Individual Pullups. will be ignored if ENDSTOPPULLUPS is defined
