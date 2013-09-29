@@ -3,8 +3,8 @@
 #include "math.h"
 #include "marlin/Marlin.h"
 
-DigitalOut heat0_led(LED1);//x
-DigitalOut heat1_led(LED2);//y
+DigitalOut p_heater0_led(LED1);//x
+DigitalOut p_heat_bed_led(LED2);//y
 //DigitalOut led3(LED3);//z
 DigitalOut p_led(LED_PIN);//e
 

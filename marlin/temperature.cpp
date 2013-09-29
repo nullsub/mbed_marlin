@@ -559,6 +559,7 @@ void manage_heater()
 	{
 		soft_pwm_bed = 0;
 		p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
+		p_heat_bed_led = 0;
 	}
 #else //#ifdef BED_LIMIT_SWITCHING
 	// Check if temperature is within the correct band
@@ -577,6 +578,7 @@ void manage_heater()
 	{
 		soft_pwm_bed = 0;
 		p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
+		p_heat_bed_led = 0;
 	}
 #endif
 #endif
@@ -762,6 +764,7 @@ void disable_heater()
 	soft_pwm[0]=0;
 #if defined(HEATER_0_PIN) && HEATER_0_PIN > -1
 	p_heater0 = 0; //WRITE(HEATER_0_PIN,LOW);
+	p_heater0_led = 0;
 #endif
 #endif
 
@@ -786,6 +789,7 @@ void disable_heater()
 	soft_pwm_bed=0;
 #if defined(HEATER_BED_PIN) && HEATER_BED_PIN > -1
 	p_heater_bed = 0; //WRITE(HEATER_BED_PIN,LOW);
+	p_heat_bed_led = 0;
 #endif
 #endif
 }
@@ -819,6 +823,7 @@ void min_temp_error(uint8_t e) {
 void bed_max_temp_error(void) {
 #if HEATER_BED_PIN > -1
 	p_heater_bed = 0; //WRITE(HEATER_BED_PIN, 0);
+	p_heat_bed_led = 0;
 #endif
 	if(IsStopped() == false) {
 		SERIAL_ERROR_START;
@@ -854,7 +859,9 @@ void temp_int()
 
 	if(pwm_count == 0){
 		soft_pwm_0 = soft_pwm[0];
-		if(soft_pwm_0 > 0) p_heater0 = 1; //WRITE(HEATER_0_PIN,1);
+		if(soft_pwm_0 > 0) {p_heater0 = 1; //WRITE(HEATER_0_PIN,1);
+			p_heater0_led = 1;
+		}
 #if EXTRUDERS > 1
 		soft_pwm_1 = soft_pwm[1];
 		if(soft_pwm_1 > 0) p_heater1 = 1; //WRITE(HEATER_1_PIN,1);
@@ -865,14 +872,14 @@ void temp_int()
 #endif
 #if defined(HEATER_BED_PIN) && HEATER_BED_PIN > -1
 		soft_pwm_b = soft_pwm_bed;
-		if(soft_pwm_b > 0) p_heater_bed = 1; p_heater_bed = 1; //WRITE(HEATER_BED_PIN,1);
+		if(soft_pwm_b > 0) {p_heater_bed = 1; p_heat_bed_led = 1;} //WRITE(HEATER_BED_PIN,1);
 #endif
 #ifdef FAN_SOFT_PWM
 		soft_pwm_fan = fanSpeedSoftPwm / 2;
 		if(soft_pwm_fan > 0) p_fan = 1; //WRITE(FAN_PIN,1);
 #endif
 	}
-	if(soft_pwm_0 <= pwm_count) p_heater0 = 0; //WRITE(HEATER_0_PIN,0);
+	if(soft_pwm_0 <= pwm_count) {p_heater0_led = 0; p_heater0 = 0;} //WRITE(HEATER_0_PIN,0);
 #if EXTRUDERS > 1
 	if(soft_pwm_1 <= pwm_count) p_heater1 = 0; //WRITE(HEATER_1_PIN,0);
 #endif
@@ -880,7 +887,7 @@ void temp_int()
 	if(soft_pwm_2 <= pwm_count) p_heater2 = 0;// WRITE(HEATER_2_PIN,0);
 #endif
 #if defined(HEATER_BED_PIN) && HEATER_BED_PIN > -1
-	if(soft_pwm_b <= pwm_count) p_heater_bed  = 0; //WRITE(HEATER_BED_PIN,0);
+	if(soft_pwm_b <= pwm_count) {p_heat_bed_led = 0; p_heater_bed  = 0;} //WRITE(HEATER_BED_PIN,0);
 #endif
 #ifdef FAN_SOFT_PWM
 	if(soft_pwm_fan <= pwm_count) p_fan = 0;//WRITE(FAN_PIN,0);

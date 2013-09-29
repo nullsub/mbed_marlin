@@ -6,8 +6,8 @@
 
 extern SerialBuffered serial_buffered;
 
-extern DigitalOut heat0_led;
-extern DigitalOut heat1_led;
+extern DigitalOut p_heater0_led;
+extern DigitalOut p_heat_bed_led;
 //DigitalOut led3(LED3);//z
 extern DigitalOut p_led;
 extern DigitalOut p_fan;
