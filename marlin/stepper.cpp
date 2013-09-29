@@ -92,76 +92,11 @@ volatile int do_int = 0;
 //=============================functions         ============================
 //===========================================================================
 // intRes = intIn1 * intIn2 >> 16
-// uses:
-// r26 to store 0
-// r27 to store the byte 1 of the 24 bit result
-#define MultiU16X8toH16(intRes, charIn1, intIn2)  intRes = charIn1 * intIn2 >> 16;
-/*asm volatile ( \
-  "clr r26 \n\t" \
-  "mul %A1, %B2 \n\t" \
-  "movw %A0, r0 \n\t" \
-  "mul %A1, %A2 \n\t" \
-  "add %A0, r1 \n\t" \
-  "adc %B0, r26 \n\t" \
-  "lsr r0 \n\t" \
-  "adc %A0, r26 \n\t" \
-  "adc %B0, r26 \n\t" \
-  "clr r1 \n\t" \
-  : \
-  "=&r" (intRes) \
-  : \
-  "d" (charIn1), \
-  "d" (intIn2) \
-  : \
-  "r26" \
-  )
- */
+#define MultiU16X8toH16(intRes, charIn1, intIn2)  intRes = charIn1 * (intIn2 >> 16);
+
 // intRes = longIn1 * longIn2 >> 24
-// uses:
-// r26 to store 0
-// r27 to store the byte 1 of the 48bit result
-#define MultiU24X24toH16(intRes, longIn1, longIn2) intRes = longIn1 * longIn2 >> 24;
-/*
-   asm volatile ( \
-   "clr r26 \n\t" \
-   "mul %A1, %B2 \n\t" \
-   "mov r27, r1 \n\t" \
-   "mul %B1, %C2 \n\t" \
-   "movw %A0, r0 \n\t" \
-   "mul %C1, %C2 \n\t" \
-   "add %B0, r0 \n\t" \
-   "mul %C1, %B2 \n\t" \
-   "add %A0, r0 \n\t" \
-   "adc %B0, r1 \n\t" \
-   "mul %A1, %C2 \n\t" \
-   "add r27, r0 \n\t" \
-   "adc %A0, r1 \n\t" \
-   "adc %B0, r26 \n\t" \
-   "mul %B1, %B2 \n\t" \
-   "add r27, r0 \n\t" \
-   "adc %A0, r1 \n\t" \
-   "adc %B0, r26 \n\t" \
-   "mul %C1, %A2 \n\t" \
-   "add r27, r0 \n\t" \
-   "adc %A0, r1 \n\t" \
-   "adc %B0, r26 \n\t" \
-   "mul %B1, %A2 \n\t" \
-   "add r27, r1 \n\t" \
-   "adc %A0, r26 \n\t" \
-   "adc %B0, r26 \n\t" \
-   "lsr r27 \n\t" \
-   "adc %A0, r26 \n\t" \
-   "adc %B0, r26 \n\t" \
-   "clr r1 \n\t" \
-   : \
-   "=&r" (intRes) \
-   : \
-   "d" (longIn1), \
-   "d" (longIn2) \
-   : \
-   "r26" , "r27" \
-   )
- */
+#define MultiU24X24toH16(intRes, longIn1, longIn2) intRes = longIn1 * (longIn2 >> 24);
+
 // Some useful constants
 #define ENABLE_STEPPER_DRIVER_INTERRUPT() do_int = 1;
 #define DISABLE_STEPPER_DRIVER_INTERRUPT() do_int = 0;
@@ -234,37 +169,35 @@ void st_wake_up() {
 }
 
 unsigned int calc_timer(unsigned int step_rate) {
-	unsigned int timer = 1000000/step_rate; //pps to us for the timer
-	/*if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-
-	  if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
-	  step_rate = (step_rate >> 2)&0x3fff;
-	  step_loops = 4;
-	  }
-	  else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
-	  step_rate = (step_rate >> 1)&0x7fff;
-	  step_loops = 2;
-	  }
-	  else {
-	  step_loops = 1;
-	  }
-
-	  if(step_rate < (F_CPU/500000)) step_rate = (F_CPU/500000);
-	  step_rate -= (F_CPU/500000); // Correct for minimal speed
-	  if(step_rate >= (8*256)){ // higher step rate
-	  unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
-	  unsigned char tmp_step_rate = (step_rate & 0x00ff);
-	  unsigned short gain = (unsigned short)(table_address[2]);
-	  MultiU16X8toH16(timer, tmp_step_rate, gain);
-	  timer = (unsigned short)(table_address[0]) - timer;
-	  }
-	  else { // lower step rates
-	  unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
-	  table_address += ((step_rate)>>1) & 0xfffc;
-	  timer = (unsigned short)(table_address[0]);
-	  timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
-	  }*/
-	// if(timer < 100) { timer = 100; MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); }//(20kHz this should never happen)
+	unsigned int timer;
+	if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+	if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
+		step_rate = (step_rate >> 2)&0x3fff;
+		step_loops = 4;
+	}
+	else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
+		step_rate = (step_rate >> 1)&0x7fff;
+		step_loops = 2;
+	}
+	else {
+		step_loops = 1;
+	}
+	//if(step_rate < (F_CPU/500000)) step_rate = (F_CPU/500000);
+	//step_rate -= (F_CPU/500000); // Correct for minimal speed
+	if(step_rate >= (8*256)){ // higher step rate
+		unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
+		unsigned char tmp_step_rate = (step_rate & 0x00ff);
+		unsigned short gain = (unsigned short)(table_address[2]);
+		MultiU16X8toH16(timer, tmp_step_rate, gain);
+		timer = (unsigned short)(table_address[0]) - timer;
+	}
+	else { // lower step rates
+		unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
+		table_address += ((step_rate)>>1) & 0xfffc;
+		timer = (unsigned short)(table_address[0]);
+		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
+	}
+	if(timer < 100) { timer = 100; MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); }//(20kHz this should never happen)
 	return timer;
 }
 
@@ -332,7 +265,7 @@ void stepper_int_handler()
 			//      #endif
 		}
 		else {
-				stepper_timer.detach();
+			stepper_timer.detach();
 			stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
 		}
 	}
@@ -520,8 +453,6 @@ void stepper_int_handler()
 				}
 #endif //!ADVANCE
 
-
-
 				for(int8_t i=0; i < step_loops; i++) { // Take multiple steps per interrupt (For high speed moves)
 #ifdef ADVANCE
 					counter_e += current_block->steps_e;
@@ -621,7 +552,7 @@ void stepper_int_handler()
 
 					// step_rate to timer interval
 					timer = calc_timer(acc_step_rate);
-				stepper_timer.detach();
+					stepper_timer.detach();
 					stepper_timer.attach_us(stepper_int_handler, timer);
 					acceleration_time += timer;
 #ifdef ADVANCE
@@ -651,7 +582,7 @@ void stepper_int_handler()
 
 					// step_rate to timer interval
 					timer = calc_timer(step_rate);
-				stepper_timer.detach();
+					stepper_timer.detach();
 					stepper_timer.attach_us(stepper_int_handler, timer);
 					deceleration_time += timer;
 #ifdef ADVANCE
@@ -666,7 +597,7 @@ void stepper_int_handler()
 				}
 				else {
 
-				stepper_timer.detach();
+					stepper_timer.detach();
 					stepper_timer.attach_us(stepper_int_handler, OCR1A_nominal);
 					// ensure we're running at the correct step rate, even if we just came off an acceleration
 					step_loops = step_loops_nominal;
@@ -739,72 +670,69 @@ void stepper_int_handler()
 
 		void st_init()
 		{
-			digipot_init(); //Initialize Digipot Motor Current
-
 #if defined(X_ENABLE_PIN) && X_ENABLE_PIN > -1
-			if(!X_ENABLE_ON) p_x_enable = HIGH; //WRITE(X_ENABLE_PIN,HIGH);
+			if(!X_ENABLE_ON) p_x_enable = 1; //WRITE(X_ENABLE_PIN,1);
 #endif
 #if defined(X2_ENABLE_PIN) && X2_ENABLE_PIN > -1
-			if(!X_ENABLE_ON) p_x2_enable = HIGH; //WRITE(X2_ENABLE_PIN,HIGH);
+			if(!X_ENABLE_ON) p_x2_enable = 1; //WRITE(X2_ENABLE_PIN,1);
 #endif
 #if defined(Y_ENABLE_PIN) && Y_ENABLE_PIN > -1
-			if(!Y_ENABLE_ON) p_y_enable = HIGH; //WRITE(Y_ENABLE_PIN,HIGH);
+			if(!Y_ENABLE_ON) p_y_enable = 1; //WRITE(Y_ENABLE_PIN,1);
 #endif
 #if defined(Z_ENABLE_PIN) && Z_ENABLE_PIN > -1
-			if(!Z_ENABLE_ON) p_z_enable = HIGH; //WRITE(Z_ENABLE_PIN,HIGH);
+			if(!Z_ENABLE_ON) p_z_enable = 1; //WRITE(Z_ENABLE_PIN,1);
 
 #if defined(Z_DUAL_STEPPER_DRIVERS) && defined(Z2_ENABLE_PIN) && (Z2_ENABLE_PIN > -1)
-			if(!Z_ENABLE_ON) p_z2_enable = HIGH; //WRITE(Z2_ENABLE_PIN,HIGH);
+			if(!Z_ENABLE_ON) p_z2_enable = 1; //WRITE(Z2_ENABLE_PIN,1);
 #endif
 #endif
 #if defined(E0_ENABLE_PIN) && (E0_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e0_enable = HIGH; //WRITE(E0_ENABLE_PIN,HIGH);
+			if(!E_ENABLE_ON) p_e0_enable = 1; //WRITE(E0_ENABLE_PIN,1);
 #endif
 #if defined(E1_ENABLE_PIN) && (E1_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e1_enable = HIGH; //WRITE(E1_ENABLE_PIN,HIGH);
+			if(!E_ENABLE_ON) p_e1_enable = 1; //WRITE(E1_ENABLE_PIN,1);
 #endif
 #if defined(E2_ENABLE_PIN) && (E2_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e2_enable = HIGH; //WRITE(E2_ENABLE_PIN,HIGH);
+			if(!E_ENABLE_ON) p_e2_enable = 1; //WRITE(E2_ENABLE_PIN,1);
 #endif
 
 			//endstops and pullups
 
 #if defined(X_MIN_PIN) && X_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_XMIN
-			p_x_min = HIGH; //WRITE(X_MIN_PIN,HIGH);
+			p_x_min = 1; //WRITE(X_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(Y_MIN_PIN) && Y_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_YMIN
-			p_y_min = HIGH ;//WRITE(Y_MIN_PIN,HIGH);
+			p_y_min = 1 ;//WRITE(Y_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_ZMIN
-			p_z_min = HIGH; //WRITE(Z_MIN_PIN,HIGH);
+			p_z_min = 1; //WRITE(Z_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(X_MAX_PIN) && X_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_XMAX
-			p_x_max = HIGH; //WRITE(X_MAX_PIN,HIGH);
+			p_x_max = 1; //WRITE(X_MAX_PIN,1);
 #endif
 #endif
 
 #if defined(Y_MAX_PIN) && Y_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_YMAX
-			p_y_max = HIGH; //WRITE(Y_MAX_PIN,HIGH);
+			p_y_max = 1; //WRITE(Y_MAX_PIN,1);
 #endif
 #endif
 
 #if defined(Z_MAX_PIN) && Z_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_ZMAX
-			p_z_max = HIGH; //WRITE(Z_MAX_PIN,HIGH);
+			p_z_max = 1; //WRITE(Z_MAX_PIN,1);
 #endif
 #endif
-
 
 			//Initialize Step Pins
 #if defined(X_STEP_PIN) && (X_STEP_PIN > -1)
@@ -844,10 +772,6 @@ void stepper_int_handler()
 			ENABLE_STEPPER_DRIVER_INTERRUPT();
 
 #ifdef ADVANCE
-#if defined(TCCR0A) && defined(WGM01)
-			TCCR0A &= ~(1<<WGM01);
-			TCCR0A &= ~(1<<WGM00);
-#endif
 			e_steps[0] = 0;
 			e_steps[1] = 0;
 			e_steps[2] = 0;
@@ -912,36 +836,4 @@ void stepper_int_handler()
 				plan_discard_current_block();
 			current_block = NULL;
 			ENABLE_STEPPER_DRIVER_INTERRUPT();
-		}
-
-		void digitalPotWrite(int address, int value) // From Arduino DigitalPotControl example
-		{
-#if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
-			digitalWrite(DIGIPOTSS_PIN,LOW); // take the SS pin low to select the chip
-			SPI.transfer(address); //  send in the address and value via SPI:
-			SPI.transfer(value);
-			digitalWrite(DIGIPOTSS_PIN,HIGH); // take the SS pin high to de-select the chip:
-			//delay(10);
-#endif
-		}
-
-		void digipot_init() //Initialize Digipot Motor Current
-		{
-#if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
-			const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
-
-			SPI.begin();
-			pinMode(DIGIPOTSS_PIN, OUTPUT);
-			for(int i=0;i<=4;i++)
-				//digitalPotWrite(digipot_ch[i], digipot_motor_current[i]);
-				digipot_current(i,digipot_motor_current[i]);
-#endif
-		}
-
-		void digipot_current(uint8_t driver, int current)
-		{
-#if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
-			const uint8_t digipot_ch[] = DIGIPOT_CHANNELS;
-			digitalPotWrite(digipot_ch[driver], current);
-#endif
 		}

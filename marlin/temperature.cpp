@@ -139,16 +139,6 @@ static int maxttemp[EXTRUDERS] = ARRAY_BY_EXTRUDERS( 16383, 16383, 16383 );
 static int bed_maxttemp_raw = HEATER_BED_RAW_HI_TEMP;
 #endif
 
-#ifdef TEMP_SENSOR_1_AS_REDUNDANT
-static void *heater_ttbl_map[2] = {(void *)HEATER_0_TEMPTABLE, (void *)HEATER_1_TEMPTABLE };
-static uint8_t heater_ttbllen_map[2] = { HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN };
-#else
-static void *heater_ttbl_map[EXTRUDERS] = ARRAY_BY_EXTRUDERS( (void *)HEATER_0_TEMPTABLE, (void *)HEATER_1_TEMPTABLE, (void *)HEATER_2_TEMPTABLE );
-static uint8_t heater_ttbllen_map[EXTRUDERS] = ARRAY_BY_EXTRUDERS( HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN );
-#endif
-
-static float analog2temp(int raw, uint8_t e);
-static float analog2tempBed(int raw);
 static void updateTemperaturesFromRawValues();
 
 #ifdef WATCH_TEMP_PERIOD
@@ -619,78 +609,7 @@ int analog2temp_thermistor(int raw,const short table[][2], int numtemps) {
 
     return celsius;
 }
-/*
-// Derived from RepRap FiveD extruder::getTemperature()
-// For hot end temperature measurement.
-static float analog2temp(int raw, uint8_t e) {
-#ifdef TEMP_SENSOR_1_AS_REDUNDANT
-	if(e > EXTRUDERS)
-#else
-		if(e >= EXTRUDERS)
-#endif
-		{
-			SERIAL_ERROR_START;
-			SERIAL_ERROR((int)e);
-			SERIAL_ERRORLNPGM(" - Invalid extruder number !");
-			kill();
-		}
 
-	if(heater_ttbl_map[e] != NULL)
-	{
-		float celsius = 0;
-		uint8_t i;
-		short (*tt)[][2] = (short (*)[][2])(heater_ttbl_map[e]);
-
-		for (i=1; i<heater_ttbllen_map[e]; i++)
-		{
-			if (PGM_RD_W((*tt)[i][0]) > raw)
-			{
-				celsius = PGM_RD_W((*tt)[i-1][1]) +
-					(raw - PGM_RD_W((*tt)[i-1][0])) *
-					(float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i-1][1])) /
-					(float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i-1][0]));
-				break;
-			}
-		}
-
-		// Overflow: Set to last value in the table
-		if (i == heater_ttbllen_map[e]) celsius = PGM_RD_W((*tt)[i-1][1]);
-
-		return celsius;
-	}
-	return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-}
-
-// Derived from RepRap FiveD extruder::getTemperature()
-// For bed temperature measurement.
-static float analog2tempBed(int raw) {
-#ifdef BED_USES_THERMISTOR
-	float celsius = 0;
-	byte i;
-
-	for (i=1; i<BEDTEMPTABLE_LEN; i++)
-	{
-		if (PGM_RD_W(BEDTEMPTABLE[i][0]) > raw)
-		{
-			celsius  = PGM_RD_W(BEDTEMPTABLE[i-1][1]) +
-				(raw - PGM_RD_W(BEDTEMPTABLE[i-1][0])) *
-				(float)(PGM_RD_W(BEDTEMPTABLE[i][1]) - PGM_RD_W(BEDTEMPTABLE[i-1][1])) /
-				(float)(PGM_RD_W(BEDTEMPTABLE[i][0]) - PGM_RD_W(BEDTEMPTABLE[i-1][0]));
-			break;
-		}
-	}
-
-	// Overflow: Set to last value in the table
-	if (i == BEDTEMPTABLE_LEN) celsius = PGM_RD_W(BEDTEMPTABLE[i-1][1]);
-
-	return celsius;
-#elif defined BED_USES_AD595
-	return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-#else
-	return 0;
-#endif
-}
-*/
 /* Called to get the raw values into the the actual temperatures. The raw values are created in interrupt context,
    and this function is called from normal context as it is too slow to run in interrupts and will block the stepper routine otherwise */
 static void updateTemperaturesFromRawValues()
