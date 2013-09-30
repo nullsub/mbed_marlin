@@ -658,7 +658,7 @@ void tp_init()
 
 	// Use timer0 for temperature measurement
 	// Interleave temperature interrupt with millies interrupt
-	temp_timer.attach_us(&temp_int, 1000); //every ms
+	temp_timer.attach_us(&temp_int, 500); //every 1/2 ms
 	//OCR0B = 128;
 	//TIMSK0 |= (1<<OCIE0B);
 
@@ -795,10 +795,10 @@ void disable_heater()
 }
 
 void max_temp_error(uint8_t e) {
-	disable_heater();
+//	disable_heater();
 	if(IsStopped() == false) {
 		SERIAL_ERROR_START;
-		SERIAL_ERRORLN((int)e);
+		SERIAL_ERROR((int)e);
 		SERIAL_ERRORLNPGM(": Extruder switched off. MAXTEMP triggered !");
 		LCD_ALERTMESSAGEPGM("Err: MAXTEMP");
 	}
@@ -808,11 +808,11 @@ void max_temp_error(uint8_t e) {
 }
 
 void min_temp_error(uint8_t e) {
-	disable_heater();
 #ifndef BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE
+	disable_heater();
 	if(IsStopped() == false) {
 		SERIAL_ERROR_START;
-		SERIAL_ERRORLN((int)e);
+		SERIAL_ERROR((int)e);
 		SERIAL_ERRORLNPGM(": Extruder switched off. MINTEMP triggered !");
 		LCD_ALERTMESSAGEPGM("Err: MINTEMP");
 	}
@@ -821,6 +821,7 @@ void min_temp_error(uint8_t e) {
 }
 
 void bed_max_temp_error(void) {
+/*
 #if HEATER_BED_PIN > -1
 	p_heater_bed = 0; //WRITE(HEATER_BED_PIN, 0);
 	p_heat_bed_led = 0;
@@ -833,12 +834,12 @@ void bed_max_temp_error(void) {
 #ifndef BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE
 	Stop();
 #endif
+*/
 }
 
 // Timer 0 is shared with millies
 void temp_int()
 {
-	//these variables are only accesible from the ISR, but static, so they don't lose their value
 	static unsigned char temp_count = 0;
 	static unsigned long raw_temp_0_value = 0;
 	static unsigned long raw_temp_1_value = 0;
@@ -914,6 +915,8 @@ void temp_int()
 		case 1: // Measure TEMP_0
 #if defined(TEMP_0_PIN) && (TEMP_0_PIN > -1)
 			raw_temp_0_value = 1023 - (int) (p_temp0.read()*1023.0f) ;
+			raw_temp_0_value += 1023 - (int) (p_temp0.read()*1023.0f) ;
+			raw_temp_0_value /= 2;
 			//raw_temp_0_value += 1023 - (int) (p_temp0.read()*1023.0f) ;
 #endif
 			temp_state = 2;
@@ -935,6 +938,8 @@ void temp_int()
 		case 3: // Measure TEMP_BED
 #if defined(TEMP_BED_PIN) && (TEMP_BED_PIN > -1)
 			raw_temp_bed_value = 1023 - (int)(p_temp_bed.read()*1023.0f);
+			raw_temp_bed_value += 1023 - (int)(p_temp_bed.read()*1023.0f);
+			raw_temp_bed_value /= 2;
 			//raw_temp_bed_value += 1023 - (int)(p_temp_bed.read()*1023.0f);
 #endif
 			temp_state = 4;

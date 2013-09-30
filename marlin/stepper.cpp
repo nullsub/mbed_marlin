@@ -182,8 +182,8 @@ unsigned int calc_timer(unsigned int step_rate) {
 	else {
 		step_loops = 1;
 	}
-	//if(step_rate < (F_CPU/500000)) step_rate = (F_CPU/500000);
-	//step_rate -= (F_CPU/500000); // Correct for minimal speed
+	if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
+	step_rate -= (16000000/500000); // Correct for minimal speed
 	if(step_rate >= (8*256)){ // higher step rate
 		unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
 		unsigned char tmp_step_rate = (step_rate & 0x00ff);
@@ -198,6 +198,7 @@ unsigned int calc_timer(unsigned int step_rate) {
 		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
 	}
 	if(timer < 100) { timer = 100; MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); }//(20kHz this should never happen)
+	timer = timer *2;
 	return timer;
 }
 

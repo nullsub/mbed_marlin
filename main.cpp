@@ -79,6 +79,7 @@ void cli(){}
 void sei(){}
 
 int main() {
+	mbed_interface_disconnect(); //disable debug interface. and acces to MAC and local FS. ADC will work better!
     timer.start();
 	serial_buffered.baud(BAUDRATE);
     setup();

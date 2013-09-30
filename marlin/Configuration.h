@@ -140,21 +140,21 @@
 
 // PID settings:
 // Comment the following line to disable PID and enable bang-bang.
-#define PIDTEMP
+//#define PIDTEMP
 #define BANG_MAX 255 // limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX 255 // limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
 #ifdef PIDTEMP
   //#define PID_DEBUG // Sends debug data to the serial port.
   //#define PID_OPENLOOP 1 // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
-  #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
+  #define PID_FUNCTIONAL_RANGE 6 // If the temperature difference between the target temperature and the actual temperature
                                   // is more then PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
   #define PID_INTEGRAL_DRIVE_MAX 255  //limit for the integral term
   #define K1 0.95 //smoothing factor within the PID
-  #define PID_dT ((16.0 * 8.0)/(F_CPU / 64.0 / 256.0)) //sampling period of the temperature routine
+  #define PID_dT ((16.0 * 8.0)/(16000000/ 64.0 / 256.0)) //sampling period of the temperature routine
 
-    #define  DEFAULT_Kp 10.7
-    #define  DEFAULT_Ki 1.48
-    #define  DEFAULT_Kd 19.35
+    #define  DEFAULT_Kp 1.59
+    #define  DEFAULT_Ki 0.23
+    #define  DEFAULT_Kd 2.75
 
 #endif // PIDTEMP
 
@@ -266,7 +266,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
 // Travel limits after homing
-#define X_MAX_POS 175
+#define X_MAX_POS 150
 #define X_MIN_POS 0
 #define Y_MAX_POS 100
 #define Y_MIN_POS 0
@@ -294,14 +294,14 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556,35.446,1280.0,368.421}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {41.667, 50, 1, 3.333}    // (mm/sec)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556,35.556,1280.0,368.421}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {40, 41, 1, 3.333}    // (mm/sec)
 //float max_feedrate[] ={2500, 3000, 60, 200}; //{200000, 200000, 240, 500000}; //X=200, Y=230, Z=230
-#define DEFAULT_MAX_ACCELERATION      {500,500,50,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_MAX_ACCELERATION      {490,490,50,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 //long max_acceleration_units_per_sq_second[] = {500,500,50,10000}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 
-#define DEFAULT_ACCELERATION          500    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  500   // X, Y, Z and E max acceleration in mm/s^2 for retracts
+#define DEFAULT_ACCELERATION          490    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  490   // X, Y, Z and E max acceleration in mm/s^2 for retracts
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
 // The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
