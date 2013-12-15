@@ -35,10 +35,10 @@
 #define SERIAL_PROTOCOL(x) (MYSERIAL.print(x))
 #define SERIAL_PROTOCOL_F(x,y) (MYSERIAL.print(x,y))
 #define SERIAL_PROTOCOLPGM(x) (MYSERIAL.print(x))
-#define SERIAL_PROTOCOLLN(x) (MYSERIAL.print(x),MYSERIAL.write("\r\n"))
-#define SERIAL_PROTOCOLLNPGM(x) (MYSERIAL.print(x), MYSERIAL.write("\r\n"))
+#define SERIAL_PROTOCOLLN(x) (MYSERIAL.println(x))
+#define SERIAL_PROTOCOLLNPGM(x) (MYSERIAL.println(x))
 
-#define serialprintPGM(x) (MYSERIAL.print(x), MYSERIAL.write("\r\n"))
+#define serialprintPGM(x) (MYSERIAL.println(x))
 
 const char errormagic[] PROGMEM ="Error:";
 const char echomagic[] PROGMEM ="echo:";
@@ -126,7 +126,6 @@ void manage_inactivity();
 
 
 enum AxisEnum {X_AXIS=0, Y_AXIS=1, Z_AXIS=2, E_AXIS=3};
-
 
 void FlushSerialRequestResend();
 void ClearToSend();
