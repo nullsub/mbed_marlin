@@ -1729,6 +1729,7 @@ void process_commands()
 	void FlushSerialRequestResend()
 	{
 		//char cmdbuffer[bufindr][100]="Resend:";
+	    wait_ms(200); //dont know
 		MYSERIAL.flush();
 		SERIAL_PROTOCOLPGM(MSG_RESEND);
 		SERIAL_PROTOCOLLN(gcode_LastN + 1);
@@ -1743,6 +1744,7 @@ void process_commands()
 			return;
 #endif //SDSUPPORT
 		SERIAL_PROTOCOLLNPGM(MSG_OK);
+		    wait_ms(10); //ACHTUNG
 	}
 
 	void get_coordinates()

@@ -59,14 +59,16 @@ void print_float(float var) {
 }
 
 */
-int micros() {
+int micros()
+{
     static long long current_us = 0;
     current_us += timer.read_us();
     timer.reset();
     return current_us;
 }
 
-unsigned int millis() {
+unsigned int millis()
+{
     return (unsigned int)(micros()/1000);
 }
 
@@ -80,12 +82,12 @@ void sei(){}
 
 int main() {
 	mbed_interface_disconnect(); //disable debug interface. and acces to MAC and local FS. ADC will work better!
-    timer.start();
+	timer.start();
 	serial_buffered.baud(BAUDRATE);
-    setup();
-    while (1) {
-        loop();
-    }
+	setup();
+	while (1) {
+		loop();
+	}
 }
 
 /*
