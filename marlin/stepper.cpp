@@ -168,10 +168,63 @@ void st_wake_up() {
 	ENABLE_STEPPER_DRIVER_INTERRUPT();
 }
 
+volatile unsigned int stepper_count = 100;
+void set_int(unsigned int time) {
+	stepper_count = time;
+}
+
+void the_int(){
+	static unsigned int counter = 0;
+	stepper_timer.detach();
+	stepper_timer.attach_us(the_int, 10);
+	counter ++;
+	if(counter >= stepper_count) {
+		counter = 0;
+		stepper_int_handler();
+	}
+}
+
 unsigned int calc_timer(unsigned int step_rate) {
+  unsigned short timer;
+  if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+
+  if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
+    step_rate = (step_rate >> 2)&0x3fff;
+    step_loops = 4;
+  }
+  else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
+    step_rate = (step_rate >> 1)&0x7fff;
+    step_loops = 2;
+  }
+  else {
+    step_loops = 1;
+  }
+
+  if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
+  step_rate -= (16000000/500000); // Correct for minimal speed
+  if(step_rate >= (8*256)){ // higher step rate
+    //unsigned short table_address = (unsigned short)&speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
+		unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
+    unsigned char tmp_step_rate = (step_rate & 0x00ff);
+//    unsigned short gain = (unsigned short)pgm_read_word_near(table_address+2);
+unsigned short gain = (unsigned short)(table_address[2]);
+    MultiU16X8toH16(timer, tmp_step_rate, gain);
+    //timer = (unsigned short)pgm_read_word_near(table_address) - timer;
+		timer = (unsigned short)(table_address[0]) - timer;
+  }
+  else { // lower step rates
+    //unsigned short table_address = (unsigned short)&speed_lookuptable_slow[0][0];
+		unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
+    table_address += ((step_rate)>>1) & 0xfffc;
+    //timer = (unsigned short)pgm_read_word_near(table_address);
+    //timer -= (((unsigned short)pgm_read_word_near(table_address+2) * (unsigned char)(step_rate & 0x0007))>>3);
+		timer = (unsigned short)(table_address[0]);
+		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
+  }
+/*
 	unsigned int timer;
 	if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-	/*if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
+	if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
 		step_rate = (step_rate >> 2)&0x3fff;
 		step_loops = 4;
 	}
@@ -179,9 +232,9 @@ unsigned int calc_timer(unsigned int step_rate) {
 		step_rate = (step_rate >> 1)&0x7fff;
 		step_loops = 2;
 	}
-	else {*/
+	else {
 		step_loops = 1;
-	//}
+	}
 	if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
 	step_rate -= (16000000/500000); // Correct for minimal speed
 	if(step_rate >= (8*256)){ // higher step rate
@@ -196,11 +249,13 @@ unsigned int calc_timer(unsigned int step_rate) {
 		table_address += ((step_rate)>>1) & 0xfffc;
 		timer = (unsigned short)(table_address[0]);
 		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
-	}
-	if(timer < 100) { timer = 100; /*MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); */}//(20kHz this should never happen)
-	timer = timer *2;
+	}*/
+	if(timer < 1000) { timer = 1000; /*MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); */}//(20kHz this should never happen)
+	timer = timer/2;
+	timer = timer/10; //since my timer runs at 1mhz and not 2mhz
 	return timer;
 }
+
 
 // Initializes the trapezoid generator from the current block. Called whenever a new
 // block begins.
@@ -219,8 +274,7 @@ void trapezoid_generator_reset() {
 	step_loops_nominal = step_loops;
 	acc_step_rate = current_block->initial_rate;
 	acceleration_time = calc_timer(acc_step_rate);
-	stepper_timer.detach();
-	stepper_timer.attach_us(stepper_int_handler, acceleration_time);
+	set_int(acceleration_time);
 
 	//    SERIAL_ECHO_START;
 	//    SERIAL_ECHOPGM("advance :");
@@ -233,6 +287,7 @@ void trapezoid_generator_reset() {
 	//    SERIAL_ECHOLN(current_block->final_advance/256.0);
 
 }
+
 
 void stepper_int_handler()
 {
@@ -255,8 +310,8 @@ void stepper_int_handler()
 #ifdef Z_LATE_ENABLE
 			if(current_block->steps_z > 0) {
 				enable_z();
-				stepper_timer.detach();
-				stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
+				set_int(1000);
+				//stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
 				return;
 			}
 #endif
@@ -266,8 +321,8 @@ void stepper_int_handler()
 			//      #endif
 		}
 		else {
-			stepper_timer.detach();
-			stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
+			set_int(1000);
+			//stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
 		}
 	}
 
@@ -553,8 +608,8 @@ void stepper_int_handler()
 
 					// step_rate to timer interval
 					timer = calc_timer(acc_step_rate);
-					stepper_timer.detach();
-					stepper_timer.attach_us(stepper_int_handler, timer);
+					//stepper_timer.attach_us(stepper_int_handler, timer);
+					set_int(timer);
 					acceleration_time += timer;
 #ifdef ADVANCE
 					for(int8_t i=0; i < step_loops; i++) {
@@ -583,8 +638,8 @@ void stepper_int_handler()
 
 					// step_rate to timer interval
 					timer = calc_timer(step_rate);
-					stepper_timer.detach();
-					stepper_timer.attach_us(stepper_int_handler, timer);
+					//stepper_timer.attach_us(stepper_int_handler, timer);
+					set_int(timer);
 					deceleration_time += timer;
 #ifdef ADVANCE
 					for(int8_t i=0; i < step_loops; i++) {
@@ -598,8 +653,8 @@ void stepper_int_handler()
 				}
 				else {
 
-					stepper_timer.detach();
-					stepper_timer.attach_us(stepper_int_handler, OCR1A_nominal);
+					//stepper_timer.attach_us(stepper_int_handler, OCR1A_nominal);
+					set_int(OCR1A_nominal);
 					// ensure we're running at the correct step rate, even if we just came off an acceleration
 					step_loops = step_loops_nominal;
 				}
@@ -768,7 +823,7 @@ void stepper_int_handler()
 			disable_e2();
 #endif
 
-			stepper_timer.attach_us(stepper_int_handler, 2000);
+			stepper_timer.attach_us(the_int, 1000);
 
 			ENABLE_STEPPER_DRIVER_INTERRUPT();
 
