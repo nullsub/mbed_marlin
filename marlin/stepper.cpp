@@ -171,7 +171,7 @@ void st_wake_up() {
 unsigned int calc_timer(unsigned int step_rate) {
 	unsigned int timer;
 	if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-	if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
+	/*if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
 		step_rate = (step_rate >> 2)&0x3fff;
 		step_loops = 4;
 	}
@@ -179,9 +179,9 @@ unsigned int calc_timer(unsigned int step_rate) {
 		step_rate = (step_rate >> 1)&0x7fff;
 		step_loops = 2;
 	}
-	else {
+	else {*/
 		step_loops = 1;
-	}
+	//}
 	if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
 	step_rate -= (16000000/500000); // Correct for minimal speed
 	if(step_rate >= (8*256)){ // higher step rate
@@ -768,7 +768,7 @@ void stepper_int_handler()
 			disable_e2();
 #endif
 
-			stepper_timer.attach_us(stepper_int_handler,2000);
+			stepper_timer.attach_us(stepper_int_handler, 2000);
 
 			ENABLE_STEPPER_DRIVER_INTERRUPT();
 

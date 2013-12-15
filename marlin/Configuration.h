@@ -100,7 +100,7 @@
 // 52 is 200k thermistor - ATC Semitec 204GT-2 (1k pullup)
 // 55 is 100k thermistor - ATC Semitec 104GT-2 (Used in ParCan) (1k pullup)
 
-#define THERMISTORHEATER 1
+#define THERMISTORHEATER 6 //1
 
 #define TEMP_SENSOR_0 1
 #define TEMP_SENSOR_1 0
@@ -293,15 +293,14 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define HOMING_FEEDRATE {500, 500, 60, 0}  // set the homing speeds (mm/min)
 
 // default settings
-
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556,35.556,1280.0,368.421}  // default steps per unit for Ultimaker
 #define DEFAULT_MAX_FEEDRATE          {40, 41, 1, 3.333}    // (mm/sec)
 //float max_feedrate[] ={2500, 3000, 60, 200}; //{200000, 200000, 240, 500000}; //X=200, Y=230, Z=230
 #define DEFAULT_MAX_ACCELERATION      {490,490,50,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 //long max_acceleration_units_per_sq_second[] = {500,500,50,10000}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 
-#define DEFAULT_ACCELERATION          490    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  490   // X, Y, Z and E max acceleration in mm/s^2 for retracts
+#define DEFAULT_ACCELERATION          490//50    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  490//50   // X, Y, Z and E max acceleration in mm/s^2 for retracts
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
 // The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
