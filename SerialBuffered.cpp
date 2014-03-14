@@ -1,4 +1,3 @@
-
 #include "mbed.h"
 #include "SerialBuffered.h"
 
@@ -6,14 +5,12 @@ SerialBuffered::SerialBuffered( size_t bufferSize, PinName tx, PinName rx ) : Se
     m_buffSize = 0;
     m_contentStart = 0;
     m_contentEnd = 0;
-    m_timeout = 1.0;
-
 
     attach( this, &SerialBuffered::handleInterrupt );
 
     m_buff = (uint8_t *) malloc( bufferSize );
     if ( m_buff == NULL ) {
-        //loggerSerial.printf("SerialBuffered - failed to alloc buffer size %d\r\n", (int) bufferSize );
+        print("SerialBuffered - failed to alloc buffer size \n");
     } else {
         m_buffSize = bufferSize;
     }
@@ -25,11 +22,8 @@ SerialBuffered::~SerialBuffered() {
         free( m_buff );
 }
 
-void SerialBuffered::setTimeout( float seconds ) {
-    m_timeout = seconds;
-}
-
 void SerialBuffered::flush( ) {
+    m_contentStart = m_contentEnd;
 }
 
 size_t SerialBuffered::readBytes( uint8_t *bytes, size_t requested ) {
@@ -46,21 +40,12 @@ size_t SerialBuffered::readBytes( uint8_t *bytes, size_t requested ) {
 }
 
 int SerialBuffered::getc() {
-    m_timer.reset();
-    m_timer.start();
     while ( m_contentStart == m_contentEnd ) {
-
-
-        wait_ms( 1 );
-        if ( m_timeout > 0 &&  m_timer.read() > m_timeout )
-            return EOF;
+        wait_ms(1);
     }
-
-    m_timer.stop();
 
     uint8_t result = m_buff[m_contentStart++];
     m_contentStart =  m_contentStart % m_buffSize;
-
 
     return result;
 }
@@ -132,7 +117,7 @@ void SerialBuffered::print(double n, int digits)
 
 void SerialBuffered::println(void)
 {
-	print('\r');
+//	print('\r');
 	print('\n');
 }
 
@@ -190,8 +175,7 @@ void SerialBuffered::println(double n, int digits)
 	println();
 }
 
-// Private Methods /////////////////////////////////////////////////////////////
-
+//private
 void SerialBuffered::printNumber(unsigned long n, uint8_t base)
 {
 	unsigned char buf[8 * sizeof(long)]; // Assumes 8-bit chars.

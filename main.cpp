@@ -41,35 +41,15 @@ AnalogIn p_temp_bed(TEMP_BED_PIN);//heated-build-platform thermistor
 SerialBuffered serial_buffered( 4096, USBTX, USBRX);
 
 Timer timer;
-/*
-char print_buffer[100];
-void print_int(int var) {
-    sprintf(print_buffer,"%d",var);
-    print_string(print_buffer);
-}
-
-void print_long(long var) {
-    sprintf(print_buffer,"%ld", var);
-    print_string(print_buffer);
-}
-
-void print_float(float var) {
-    sprintf(print_buffer,"%f",var);
-    print_string(print_buffer);
-}
-
-*/
-int micros()
-{
-    static long long current_us = 0;
-    current_us += timer.read_us();
-    timer.reset();
-    return current_us;
-}
 
 unsigned int millis()
 {
-    return (unsigned int)(micros()/1000);
+	static long long current_ms = 0;
+	if(timer.read_ms() > 10000*60) { /*reset every 10 minutes*/
+		current_ms += timer.read_ms();
+		timer.reset();
+	}
+	return current_ms + timer.read_ms();
 }
 
 void delay_ms(int ms)
@@ -89,101 +69,3 @@ int main() {
 		loop();
 	}
 }
-
-/*
-void log_message(char*   message) {
-    print_string("DEBUG");
-    print_string(message);
-}
-
-void log_bool(char* message, int value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %i", value);
-}
-
-void log_int(char* message, int value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %i", value);
-}
-
-void log_long(char* message, long value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %l", value);
-}
-
-void log_float(char* message, float value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %f", value);
-}
-
-void log_uint(char* message, unsigned int value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %i", value);
-}
-
-void log_ulong(char* message, unsigned long value) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": %l", value);
-}
-
-void log_int_array(char* message, int value[], int array_lenght) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": {");
-    for (int i=0; i < array_lenght; i++) {
-        print_string("%i",value[i]);
-        if (i != array_lenght-1) print_string(", ");
-    }
-    print_string("}\r\n");
-}
-
-void log_long_array(char* message, long value[], int array_lenght) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": {");
-    for (int i=0; i < array_lenght; i++) {
-        print_string("%l",value[i]);
-        if (i != array_lenght-1) print_string(", ");
-    }
-    print_string("}\r\n");
-}
-
-void log_float_array(char* message, float value[], int array_lenght) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": {");
-    for (int i=0; i < array_lenght; i++) {
-        print_string("%f",value[i]);
-        if (i != array_lenght-1) print_string(", ");
-    }
-    print_string("}\r\n");
-}
-
-void log_uint_array(char* message, unsigned int value[], int array_lenght) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": {");
-    for (int i=0; i < array_lenght; i++) {
-        print_string("%i", value[i]);
-        if (i != array_lenght-1) print_string(", ");
-    }
-    print_string("}\r\n");
-}
-
-void log_ulong_array(char* message, unsigned long value[], int array_lenght) {
-    print_string("DEBUG");
-    print_string(message);
-    print_string(": {");
-    for (int i=0; i < array_lenght; i++) {
-        print_string("%l",value[i]);
-        if (i != array_lenght-1) print_string(", ");
-    }
-    print_string("}\r\n");
-}
-*/

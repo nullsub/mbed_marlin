@@ -1728,7 +1728,7 @@ void process_commands()
 
 	void FlushSerialRequestResend()
 	{
-		wait_ms(200); //dont know
+	//	wait_ms(200); //dont know
 		MYSERIAL.flush();
 		SERIAL_PROTOCOLPGM(MSG_RESEND);
 		SERIAL_PROTOCOLLN(gcode_LastN + 1);
