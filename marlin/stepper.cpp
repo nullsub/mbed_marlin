@@ -28,9 +28,6 @@
 #include "language.h"
 #include "mbed.h"
 #include "speed_lookuptable.h"
-#if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
-#include <SPI.h>
-#endif
 
 Ticker stepper_timer;
 void stepper_int_handler();
@@ -690,36 +687,6 @@ void stepper_int_handler()
 						p_e0_step = !INVERT_E_STEP_PIN; //WRITE(E0_STEP_PIN, !INVERT_E_STEP_PIN);
 					}
 				}
-#if EXTRUDERS > 1
-				if (e_steps[1] != 0) {
-					p_e1_step = INVERT_E_STEP_PIN; //WRITE(E1_STEP_PIN, INVERT_E_STEP_PIN);
-					if (e_steps[1] < 0) {
-						p_e1_dir = INVERT_E1_DIR; //WRITE(E1_DIR_PIN, INVERT_E1_DIR);
-						e_steps[1]++;
-						p_e1_step = !INVERT_E_STEP_PIN; //WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
-					}
-					else if (e_steps[1] > 0) {
-						p_e1_dir = !INVERT_E1_DIR; //WRITE(E1_DIR_PIN, !INVERT_E1_DIR);
-						e_steps[1]--;
-						p_e1_step = !INVERT_E_STEP_PIN; //WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
-					}
-				}
-#endif
-#if EXTRUDERS > 2
-				if (e_steps[2] != 0) {
-					p_e2_step = INVERT_E_STEP_PIN; //WRITE(E2_STEP_PIN, INVERT_E_STEP_PIN);
-					if (e_steps[2] < 0) {
-						p_e2_dir = INVERT_E2_DIR; //WRITE(E2_DIR_PIN, INVERT_E2_DIR);
-						e_steps[2]++;
-						p_e2_step = !INVER_E_STEP_PIN; //WRITE(E2_STEP_PIN, !INVERT_E_STEP_PIN);
-					}
-					else if (e_steps[2] > 0) {
-						p_e2_dir = !INVERT_E2_DIR; //WRITE(E2_DIR_PIN, !INVERT_E2_DIR);
-						e_steps[2]--;
-						p_e2_step = !INVERT_E_STEP_PIN; //WRITE(E2_STEP_PIN, !INVERT_E_STEP_PIN);
-					}
-				}
-#endif
 			}
 		}
 #endif // ADVANCE

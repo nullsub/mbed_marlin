@@ -10,14 +10,6 @@
 #endif
 #define BED_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
 
-//// Heating sanity check:
-// This waits for the watchperiod in milliseconds whenever an M104 or M109 increases the target temperature
-// If the temperature has not increased at the end of that period, the target temperature is set to zero.
-// It can be reset with another M104/M109. This check is also only triggered if the target temperature and the current temperature
-//  differ by at least 2x WATCH_TEMP_INCREASE
-//#define WATCH_TEMP_PERIOD 40000 //40 seconds
-//#define WATCH_TEMP_INCREASE 10  //Heat up at least 10 degree in 20 seconds
-
 #ifdef PIDTEMP
   // this adds an experimental additional term to the heatingpower, proportional to the extrusion speed.
   // if Kc is choosen well, the additional required power due to increased melting should be compensated.
@@ -35,7 +27,7 @@
 // you exit the value by any M109 without F*
 // Also, if the temperature is set to a value <mintemp, it is not changed by autotemp.
 // on an ultimaker, some initial testing worked with M109 S215 B260 F1 in the start.gcode
-#define AUTOTEMP
+//#define AUTOTEMP
 #ifdef AUTOTEMP
   #define AUTOTEMP_OLDWEIGHT 0.98
 #endif
@@ -78,7 +70,6 @@
 //===========================================================================
 
 #define ENDSTOPS_ONLY_FOR_HOMING // If defined the endstops will only be used for homing
-
 
 //// AUTOSET LOCATIONS OF LIMIT SWITCHES
 //// Added by ZetaPhoenix 09-15-2012
@@ -126,67 +117,6 @@
 #endif //End auto min/max positions
 //END AUTOSET LOCATIONS OF LIMIT SWITCHES -ZP
 
-
-//#define Z_LATE_ENABLE // Enable Z the last moment. Needed if your Z driver overheats.
-
-// A single Z stepper driver is usually used to drive 2 stepper motors.
-// Uncomment this define to utilize a separate stepper driver for each Z axis motor.
-// Only a few motherboards support this, like RAMPS, which have dual extruder support (the 2nd, often unused, extruder driver is used
-// to control the 2nd Z axis stepper motor). The pins are currently only defined for a RAMPS motherboards.
-// On a RAMPS (or other 5 driver) motherboard, using this feature will limit you to using 1 extruder.
-//#define Z_DUAL_STEPPER_DRIVERS
-
-#ifdef Z_DUAL_STEPPER_DRIVERS
-  #undef EXTRUDERS
-  #define EXTRUDERS 1
-#endif
-
-// Enable this for dual x-carriage printers.
-// A dual x-carriage design has the advantage that the inactive extruder can be parked which
-// prevents hot-end ooze contaminating the print. It also reduces the weight of each x-carriage
-// allowing faster printing speeds.
-//#define DUAL_X_CARRIAGE
-#ifdef DUAL_X_CARRIAGE
-// Configuration for second X-carriage
-// Note: the first x-carriage is defined as the x-carriage which homes to the minimum endstop;
-// the second x-carriage always homes to the maximum endstop.
-#define X2_MIN_POS 80     // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
-#define X2_MAX_POS 353    // set maximum to the distance between toolheads when both heads are homed
-#define X2_HOME_DIR 1     // the second X-carriage always homes to the maximum endstop position
-#define X2_HOME_POS X2_MAX_POS // default home position is the maximum carriage position
-    // However: In this mode the EXTRUDER_OFFSET_X value for the second extruder provides a software
-    // override for X2_HOME_POS. This also allow recalibration of the distance between the two endstops
-    // without modifying the firmware (through the "M218 T1 X???" command).
-    // Remember: you should set the second extruder x-offset to 0 in your slicer.
-
-// Pins for second x-carriage stepper driver (defined here to avoid further complicating pins.h)
-#define X2_ENABLE_PIN 29
-#define X2_STEP_PIN 25
-#define X2_DIR_PIN 23
-
-// There are a few selectable movement modes for dual x-carriages using M605 S<mode>
-//    Mode 0: Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
-//                           as long as it supports dual x-carriages. (M605 S0)
-//    Mode 1: Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
-//                           that additional slicer support is not required. (M605 S1)
-//    Mode 2: Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
-//                           actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
-//                           once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
-
-// This is the default power-up mode which can be later using M605.
-#define DEFAULT_DUAL_X_CARRIAGE_MODE 0
-
-// As the x-carriages are independent we can now account for any relative Z offset
-#define EXTRUDER1_Z_OFFSET 0.0           // z offset relative to extruder 0
-
-// Default settings in "Auto-park Mode"
-#define TOOLCHANGE_PARK_ZLIFT   0.2      // the distance to raise Z axis when parking an extruder
-#define TOOLCHANGE_UNPARK_ZLIFT 1        // the distance to raise Z axis when unparking an extruder
-
-// Default x offset in duplication mode (typically set to half print bed width)
-#define DEFAULT_DUPLICATION_X_OFFSET 100
-
-#endif //DUAL_X_CARRIAGE
 
 //homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
 #define X_HOME_RETRACT_MM 5
@@ -286,7 +216,7 @@ const unsigned int dropsegments=5; //everything with less than this number of st
 
 
 //The ASCII buffer for recieving from the serial:
-#define MAX_CMD_SIZE 120
+#define MAX_CMD_SIZE 2000
 #define BUFSIZE 4
 
 
@@ -315,10 +245,6 @@ const unsigned int dropsegments=5; //everything with less than this number of st
 //===========================================================================
 //=============================  Define Defines  ============================
 //===========================================================================
-#if EXTRUDERS > 1 && defined TEMP_SENSOR_1_AS_REDUNDANT
-  #error "You cannot use TEMP_SENSOR_1_AS_REDUNDANT if EXTRUDERS > 1"
-#endif
-
 #if TEMP_SENSOR_0 > 0
   #define THERMISTORHEATER_0 TEMP_SENSOR_0
   #define HEATER_0_USES_THERMISTOR

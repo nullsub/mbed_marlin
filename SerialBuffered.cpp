@@ -40,8 +40,14 @@ size_t SerialBuffered::readBytes( uint8_t *bytes, size_t requested ) {
 }
 
 int SerialBuffered::getc() {
+	int waiting = 0;
     while ( m_contentStart == m_contentEnd ) {
         wait_ms(1);
+	waiting ++;
+	if(waiting >= 900) {
+		print("wait\n");	
+		waiting = 0;
+	}
     }
 
     uint8_t result = m_buff[m_contentStart++];

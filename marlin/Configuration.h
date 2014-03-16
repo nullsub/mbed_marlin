@@ -17,7 +17,7 @@
 #define SERIAL_PORT 0
 
 // This determines the communication speed of the printer
-#define BAUDRATE 250000 //115200
+#define BAUDRATE 230400 //115200
 
 //// The following define selects which electronics board you have. Please choose the one that matches your setup
 // 10 = Gen7 custom (Alfons3 Version) "https://github.com/Alfons3/Generation_7_Electronics"
@@ -265,7 +265,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
 // Travel limits after homing
-#define X_MAX_POS 150
+#define X_MAX_POS 145
 #define X_MIN_POS 0
 #define Y_MAX_POS 100
 #define Y_MIN_POS 0
@@ -292,14 +292,13 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define HOMING_FEEDRATE {500, 500, 30, 0}  // set the homing speeds (mm/min)
 
 // default settings
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556, 35.556, 1280.0, 368.421}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {50, 50, 0.6, 3.333}    // (mm/sec)
-//float max_feedrate[] ={2500, 3000, 60, 200}; //{200000, 200000, 240, 500000}; //X=200, Y=230, Z=230
-#define DEFAULT_MAX_ACCELERATION      {8000, 8000, 100, 10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556, 35.556, 800.00, 368.421}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {65, 65, 1.7, 20}    // (mm/sec)
+#define DEFAULT_MAX_ACCELERATION      {2000, 2000, 50, 10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 //long max_acceleration_units_per_sq_second[] = {500,500,50,10000}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 
-#define DEFAULT_ACCELERATION          3000//50    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  3000//50   // X, Y, Z and E max acceleration in mm/s^2 for retracts
+#define DEFAULT_ACCELERATION          1950 // X, Y, Z and E max acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  1950 // X, Y, Z and E max acceleration in mm/s^2 for retracts
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
 // The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
@@ -309,7 +308,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
 #define DEFAULT_XYJERK                20.0    // (mm/sec)
-#define DEFAULT_ZJERK                 0.4     // (mm/sec)
+#define DEFAULT_ZJERK                 0.3     // (mm/sec)
 #define DEFAULT_EJERK                 5.0    // (mm/sec)
 
 //===========================================================================
@@ -329,7 +328,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 //#define FAST_PWM_FAN
 
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
-// which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
+// which is not as annoying as with the hardware PWM. On the other hand, if this frequency
 // is too low, you should also increment SOFT_PWM_SCALE.
 //#define FAN_SOFT_PWM
 

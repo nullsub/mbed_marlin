@@ -384,65 +384,62 @@ void planner_recalculate_trapezoids() {
 //   3. Recalculate trapezoids for all blocks.
 
 void planner_recalculate() {
-  planner_reverse_pass();
-  planner_forward_pass();
-  planner_recalculate_trapezoids();
+	planner_reverse_pass();
+	planner_forward_pass();
+	planner_recalculate_trapezoids();
 }
 
 void plan_init() {
-  block_buffer_head = 0;
-  block_buffer_tail = 0;
-  memset(position, 0, sizeof(position)); // clear position
-  previous_speed[0] = 0.0;
-  previous_speed[1] = 0.0;
-  previous_speed[2] = 0.0;
-  previous_speed[3] = 0.0;
-  previous_nominal_speed = 0.0;
+	block_buffer_head = 0;
+	block_buffer_tail = 0;
+	memset(position, 0, sizeof(position)); // clear position
+	previous_speed[0] = 0.0;
+	previous_speed[1] = 0.0;
+	previous_speed[2] = 0.0;
+	previous_speed[3] = 0.0;
+	previous_nominal_speed = 0.0;
 }
-
-
-
 
 #ifdef AUTOTEMP
 void getHighESpeed()
 {
-  static float oldt=0;
-  if(!autotemp_enabled){
-    return;
-  }
-  if(degTargetHotend0()+2<autotemp_min) {  //probably temperature set to zero.
-    return; //do nothing
-  }
+	static float oldt=0;
+	if(!autotemp_enabled){
+		return;
+	}
+	if(degTargetHotend0()+2<autotemp_min) {  //probably temperature set to zero.
+		return; //do nothing
+	}
 
-  float high=0.0;
-  uint8_t block_index = block_buffer_tail;
+	float high=0.0;
+	uint8_t block_index = block_buffer_tail;
 
-  while(block_index != block_buffer_head) {
-    if((block_buffer[block_index].steps_x != 0) ||
-      (block_buffer[block_index].steps_y != 0) ||
-      (block_buffer[block_index].steps_z != 0)) {
-      float se=(float(block_buffer[block_index].steps_e)/float(block_buffer[block_index].step_event_count))*block_buffer[block_index].nominal_speed;
-      //se; mm/sec;
-      if(se>high)
-      {
-        high=se;
-      }
-    }
-    block_index = (block_index+1) & (BLOCK_BUFFER_SIZE - 1);
-  }
+	while(block_index != block_buffer_head) {
+		if((block_buffer[block_index].steps_x != 0) ||
+				(block_buffer[block_index].steps_y != 0) ||
+				(block_buffer[block_index].steps_z != 0)) {
+			float se=(float(block_buffer[block_index].steps_e)/float(block_buffer[block_index].step_event_count))*block_buffer[block_index].nominal_speed;
+			//se; mm/sec;
+			if(se>high)
+			{
+				high=se;
+			}
+		}
+		block_index = (block_index+1) & (BLOCK_BUFFER_SIZE - 1);
+	}
 
-  float g=autotemp_min+high*autotemp_factor;
-  float t=g;
-  if(t<autotemp_min)
-    t=autotemp_min;
-  if(t>autotemp_max)
-    t=autotemp_max;
-  if(oldt>t)
-  {
-    t=AUTOTEMP_OLDWEIGHT*oldt+(1-AUTOTEMP_OLDWEIGHT)*t;
-  }
-  oldt=t;
-  setTargetHotend0(t);
+	float g=autotemp_min+high*autotemp_factor;
+	float t=g;
+	if(t<autotemp_min)
+		t=autotemp_min;
+	if(t>autotemp_max)
+		t=autotemp_max;
+	if(oldt>t)
+	{
+		t=AUTOTEMP_OLDWEIGHT*oldt+(1-AUTOTEMP_OLDWEIGHT)*t;
+	}
+	oldt=t;
+	setTargetHotend0(t);
 }
 #endif
 
@@ -615,19 +612,9 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   block->active_extruder = extruder;
 
   //enable active axes
-  #ifdef COREXY
-  if((block->steps_x != 0) || (block->steps_y != 0))
-  {
-    enable_x();
-    enable_y();
-  }
-  #else
   if(block->steps_x != 0) enable_x();
   if(block->steps_y != 0) enable_y();
-  #endif
-#ifndef Z_LATE_ENABLE
   if(block->steps_z != 0) enable_z();
-#endif
 
   // Enable all
   if(block->steps_e != 0)
@@ -647,13 +634,8 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   }
 
   float delta_mm[4];
-  #ifndef COREXY
     delta_mm[X_AXIS] = (target[X_AXIS]-position[X_AXIS])/axis_steps_per_unit[X_AXIS];
     delta_mm[Y_AXIS] = (target[Y_AXIS]-position[Y_AXIS])/axis_steps_per_unit[Y_AXIS];
-  #else
-    delta_mm[X_AXIS] = ((target[X_AXIS]-position[X_AXIS]) + (target[Y_AXIS]-position[Y_AXIS]))/axis_steps_per_unit[X_AXIS];
-    delta_mm[Y_AXIS] = ((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-position[Y_AXIS]))/axis_steps_per_unit[Y_AXIS];
-  #endif
   delta_mm[Z_AXIS] = (target[Z_AXIS]-position[Z_AXIS])/axis_steps_per_unit[Z_AXIS];
   delta_mm[E_AXIS] = ((target[E_AXIS]-position[E_AXIS])/axis_steps_per_unit[E_AXIS])*extrudemultiply/100.0;
   if ( (unsigned long) block->steps_x <=dropsegments && (unsigned long) block->steps_y <=dropsegments && (unsigned long)block->steps_z <=dropsegments )
@@ -692,7 +674,6 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   }
 #endif
   //  END OF SLOW DOWN SECTION
-
 
   block->nominal_speed = block->millimeters * inverse_second; // (mm/sec) Always > 0
   block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
