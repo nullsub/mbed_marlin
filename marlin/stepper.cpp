@@ -166,14 +166,11 @@ void st_wake_up() {
 }
 
 volatile unsigned int stepper_count = 100;
-void set_int(unsigned int time) {
-	stepper_count = time;
-}
 
 void the_int(){
 	static unsigned int counter = 0;
-	stepper_timer.detach();
-	stepper_timer.attach_us(the_int, 10);
+//	stepper_timer.detach();
+//	stepper_timer.attach_us(the_int, 10); 
 	counter ++;
 	if(counter >= stepper_count) {
 		counter = 0;
@@ -181,46 +178,14 @@ void the_int(){
 	}
 }
 
+void set_int(unsigned int time) {
+	stepper_count = time;
+}
+
 unsigned int calc_timer(unsigned int step_rate) {
-  unsigned short timer;
-  if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+	unsigned short timer;
+	if(step_rate > MAX_STEP_FREQUENCY) {step_rate = MAX_STEP_FREQUENCY;  /*MYSERIAL.print("Max STepRate triggered\n"); MYSERIAL.println(step_rate); */}
 
-  if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
-    step_rate = (step_rate >> 2)&0x3fff;
-    step_loops = 4;
-  }
-  else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
-    step_rate = (step_rate >> 1)&0x7fff;
-    step_loops = 2;
-  }
-  else {
-    step_loops = 1;
-  }
-
-  if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
-  step_rate -= (16000000/500000); // Correct for minimal speed
-  if(step_rate >= (8*256)){ // higher step rate
-    //unsigned short table_address = (unsigned short)&speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
-		unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
-    unsigned char tmp_step_rate = (step_rate & 0x00ff);
-//    unsigned short gain = (unsigned short)pgm_read_word_near(table_address+2);
-unsigned short gain = (unsigned short)(table_address[2]);
-    MultiU16X8toH16(timer, tmp_step_rate, gain);
-    //timer = (unsigned short)pgm_read_word_near(table_address) - timer;
-		timer = (unsigned short)(table_address[0]) - timer;
-  }
-  else { // lower step rates
-    //unsigned short table_address = (unsigned short)&speed_lookuptable_slow[0][0];
-		unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
-    table_address += ((step_rate)>>1) & 0xfffc;
-    //timer = (unsigned short)pgm_read_word_near(table_address);
-    //timer -= (((unsigned short)pgm_read_word_near(table_address+2) * (unsigned char)(step_rate & 0x0007))>>3);
-		timer = (unsigned short)(table_address[0]);
-		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
-  }
-/*
-	unsigned int timer;
-	if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
 	if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
 		step_rate = (step_rate >> 2)&0x3fff;
 		step_loops = 4;
@@ -232,27 +197,62 @@ unsigned short gain = (unsigned short)(table_address[2]);
 	else {
 		step_loops = 1;
 	}
+
 	if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
 	step_rate -= (16000000/500000); // Correct for minimal speed
 	if(step_rate >= (8*256)){ // higher step rate
+		//unsigned short table_address = (unsigned short)&speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
 		unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
 		unsigned char tmp_step_rate = (step_rate & 0x00ff);
+		//    unsigned short gain = (unsigned short)pgm_read_word_near(table_address+2);
 		unsigned short gain = (unsigned short)(table_address[2]);
 		MultiU16X8toH16(timer, tmp_step_rate, gain);
+		//timer = (unsigned short)pgm_read_word_near(table_address) - timer;
 		timer = (unsigned short)(table_address[0]) - timer;
 	}
 	else { // lower step rates
+		//unsigned short table_address = (unsigned short)&speed_lookuptable_slow[0][0];
 		unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
 		table_address += ((step_rate)>>1) & 0xfffc;
+		//timer = (unsigned short)pgm_read_word_near(table_address);
+		//timer -= (((unsigned short)pgm_read_word_near(table_address+2) * (unsigned char)(step_rate & 0x0007))>>3);
 		timer = (unsigned short)(table_address[0]);
 		timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
-	}*/
-	if(timer < 1000) { timer = 1000; /*MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); */}//(20kHz this should never happen)
+	}
+	/*
+	   unsigned int timer;
+	   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+	   if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
+	   step_rate = (step_rate >> 2)&0x3fff;
+	   step_loops = 4;
+	   }
+	   else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
+	   step_rate = (step_rate >> 1)&0x7fff;
+	   step_loops = 2;
+	   }
+	   else {
+	   step_loops = 1;
+	   }
+	   if(step_rate < (16000000/500000)) step_rate = (16000000/500000);
+	   step_rate -= (16000000/500000); // Correct for minimal speed
+	   if(step_rate >= (8*256)){ // higher step rate
+	   unsigned short * table_address = (unsigned short *) &speed_lookuptable_fast[(unsigned char)(step_rate>>8)][0];
+	   unsigned char tmp_step_rate = (step_rate & 0x00ff);
+	   unsigned short gain = (unsigned short)(table_address[2]);
+	   MultiU16X8toH16(timer, tmp_step_rate, gain);
+	   timer = (unsigned short)(table_address[0]) - timer;
+	   }
+	   else { // lower step rates
+	   unsigned short *table_address = (unsigned short*)&speed_lookuptable_slow[0][0];
+	   table_address += ((step_rate)>>1) & 0xfffc;
+	   timer = (unsigned short)(table_address[0]);
+	   timer -= (((unsigned short)(table_address[2]) * (unsigned char)(step_rate & 0x0007))>>3);
+	   }*/
+	if(timer < 100) { timer = 100;/* MYSERIAL.print(MSG_STEPPER_TOO_HIGH); MYSERIAL.println(step_rate); */}//(20kHz this should never happen)
 	timer = timer/2;
-	timer = timer/10; //since my timer runs at 1mhz and not 2mhz
+//	timer = timer/5; //since my timer runs at 1mhz and not 2mhz
 	return timer;
 }
-
 
 // Initializes the trapezoid generator from the current block. Called whenever a new
 // block begins.
@@ -282,9 +282,7 @@ void trapezoid_generator_reset() {
 	//    SERIAL_ECHO(current_block->initial_advance/256.0);
 	//    SERIAL_ECHOPGM("final advance :");
 	//    SERIAL_ECHOLN(current_block->final_advance/256.0);
-
 }
-
 
 void stepper_int_handler()
 {
@@ -303,19 +301,6 @@ void stepper_int_handler()
 			counter_z = counter_x;
 			counter_e = counter_x;
 			step_events_completed = 0;
-
-#ifdef Z_LATE_ENABLE
-			if(current_block->steps_z > 0) {
-				enable_z();
-				set_int(1000);
-				//stepper_timer.attach_us(stepper_int_handler, 1000); //LPC_TIM1->MR0 = 2000; //1ms wait
-				return;
-			}
-#endif
-
-			//      #ifdef ADVANCE
-			//      e_steps[current_block->active_extruder] = 0;
-			//      #endif
 		}
 		else {
 			set_int(1000);
@@ -329,37 +314,11 @@ void stepper_int_handler()
 
 		// Set the direction bits (X_AXIS=A_AXIS and Y_AXIS=B_AXIS for COREXY)
 		if((out_bits & (1<<X_AXIS))!=0){
-#ifdef DUAL_X_CARRIAGE
-			if (extruder_duplication_enabled){
-				p_x_dir = INVERT_X_DIR;//WRITE(X_DIR_PIN, INVERT_X_DIR);
-				p_x2_dir = INVERT_X_DIR; //WRITE(X2_DIR_PIN, INVERT_X_DIR);
-			}
-			else{
-				if (current_block->active_extruder != 0)
-					p_x2_dir = INVERT_X_DIR; //(X2_DIR_PIN, INVERT_X_DIR);
-				else
-					p_x_dir = INVERT_X_DIR; //WRITE(X_DIR_PIN, INVERT_X_DIR);
-			}
-#else
 			p_x_dir = INVERT_X_DIR; //WRITE(X_DIR_PIN, INVERT_X_DIR);
-#endif
 			count_direction[X_AXIS]=-1;
 		}
 		else{
-#ifdef DUAL_X_CARRIAGE
-			if (extruder_duplication_enabled){
-				p_x_dir = !INVERT_X_DIR; //WRITE(X_DIR_PIN, !INVERT_X_DIR);
-				p_x2_dir = !INVERT_X_DIR;//WRITE(X2_DIR_PIN, !INVERT_X_DIR);
-			}
-			else{
-				if (current_block->active_extruder != 0)
-					p_x2_dir = !INVERT_X_DIR;//WRITE(X2_DIR_PIN, !INVERT_X_DIR);
-				else
-					p_x_dir = !INVERT_X_DIR; //WRITE(X_DIR_PIN, !INVERT_X_DIR);
-			}
-#else
 			p_x_dir = !INVERT_X_DIR; //WRITE(X_DIR_PIN, !INVERT_X_DIR);
-#endif
 			count_direction[X_AXIS]=1;
 		}
 		if((out_bits & (1<<Y_AXIS))!=0){
@@ -372,18 +331,9 @@ void stepper_int_handler()
 		}
 
 		// Set direction en check limit switches
-#ifndef COREXY
 		if ((out_bits & (1<<X_AXIS)) != 0) {   // stepping along -X axis
-#else
-			if ((((out_bits & (1<<X_AXIS)) != 0)&&(out_bits & (1<<Y_AXIS)) != 0)) {   //-X occurs for -A and -B
-#endif
 				if(check_endstops)
 				{
-#ifdef DUAL_X_CARRIAGE
-					// with 2 x-carriages, endstops are only checked in the homing direction for the active extruder
-					if ((current_block->active_extruder == 0 && X_HOME_DIR == -1)
-							|| (current_block->active_extruder != 0 && X2_HOME_DIR == -1))
-#endif
 					{
 #if defined(X_MIN_PIN) && X_MIN_PIN > -1
 						bool x_min_endstop=(READ(X_MIN_PIN) != X_MIN_ENDSTOP_INVERTING);
@@ -419,11 +369,7 @@ void stepper_int_handler()
 				}
 			}
 
-#ifndef COREXY
 			if ((out_bits & (1<<Y_AXIS)) != 0) {   // -direction
-#else
-				if ((((out_bits & (1<<X_AXIS)) != 0)&&(out_bits & (1<<Y_AXIS)) == 0)) {   // -Y occurs for -A and +B
-#endif
 					if(check_endstops)
 					{
 #if defined(Y_MIN_PIN) && Y_MIN_PIN > -1
@@ -455,10 +401,6 @@ void stepper_int_handler()
 				if ((out_bits & (1<<Z_AXIS)) != 0) {   // -direction
 					p_z_dir = INVERT_Z_DIR; //WRITE(Z_DIR_PIN,INVERT_Z_DIR);
 
-#ifdef Z_DUAL_STEPPER_DRIVERS
-					p_z2_dir = INVERT_Z_DIR; //WRITE(Z2_DIR_PIN,INVERT_Z_DIR);
-#endif
-
 					count_direction[Z_AXIS]=-1;
 					if(check_endstops)
 					{
@@ -475,10 +417,6 @@ void stepper_int_handler()
 				}
 				else { // +direction
 					p_z_dir = !INVERT_Z_DIR; //WRITE(Z_DIR_PIN,!INVERT_Z_DIR);
-
-#ifdef Z_DUAL_STEPPER_DRIVERS
-					p_z2_dir = !INVERT_Z_DIR; //WRITE(Z2_DIR_PIN,!INVERT_Z_DIR);
-#endif
 
 					count_direction[Z_AXIS]=1;
 					if(check_endstops)
@@ -522,36 +460,10 @@ void stepper_int_handler()
 
 					counter_x += current_block->steps_x;
 					if (counter_x > 0) {
-#ifdef DUAL_X_CARRIAGE
-						if (extruder_duplication_enabled){
-							p_x_step = !INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
-							p_x2_step = !INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN, !INVERT_X_STEP_PIN);
-						}
-						else {
-							if (current_block->active_extruder != 0)
-								p_x2_step = !INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN, !INVERT_X_STEP_PIN);
-							else
-								p_x_step = !INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
-						}
-#else
 						p_x_step = !INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
-#endif
 						counter_x -= current_block->step_event_count;
 						count_position[X_AXIS]+=count_direction[X_AXIS];
-#ifdef DUAL_X_CARRIAGE
-						if (extruder_duplication_enabled){
-							p_x_step = INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, INVERT_X_STEP_PIN);
-							p_x2_step = INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN, INVERT_X_STEP_PIN);
-						}
-						else {
-							if (current_block->active_extruder != 0)
-								p_x2_step = INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN, INVERT_X_STEP_PIN);
-							else
-								p_x_step = INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, INVERT_X_STEP_PIN);
-						}
-#else
 						p_x_step = INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN, INVERT_X_STEP_PIN);
-#endif
 					}
 
 					counter_y += current_block->steps_y;
@@ -566,17 +478,9 @@ void stepper_int_handler()
 					if (counter_z > 0) {
 						p_z_step = !INVERT_Z_STEP_PIN; //WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
 
-#ifdef Z_DUAL_STEPPER_DRIVERS
-						p_z2_step = !INVER_Z_STEP_PIN; //WRITE(Z2_STEP_PIN, !INVERT_Z_STEP_PIN);
-#endif
-
 						counter_z -= current_block->step_event_count;
 						count_position[Z_AXIS]+=count_direction[Z_AXIS];
 						p_z_step = INVERT_Z_STEP_PIN; //WRITE(Z_STEP_PIN, INVERT_Z_STEP_PIN);
-
-#ifdef Z_DUAL_STEPPER_DRIVERS
-						p_z2_step = INVERT_Z_STEP_PIN;//WRITE(Z2_STEP_PIN, INVERT_Z_STEP_PIN);
-#endif
 					}
 
 #ifndef ADVANCE
@@ -635,7 +539,6 @@ void stepper_int_handler()
 
 					// step_rate to timer interval
 					timer = calc_timer(step_rate);
-					//stepper_timer.attach_us(stepper_int_handler, timer);
 					set_int(timer);
 					deceleration_time += timer;
 #ifdef ADVANCE
@@ -650,7 +553,6 @@ void stepper_int_handler()
 				}
 				else {
 
-					//stepper_timer.attach_us(stepper_int_handler, OCR1A_nominal);
 					set_int(OCR1A_nominal);
 					// ensure we're running at the correct step rate, even if we just came off an acceleration
 					step_loops = step_loops_nominal;
@@ -691,172 +593,171 @@ void stepper_int_handler()
 		}
 #endif // ADVANCE
 
-		void st_init()
-		{
+void st_init()
+{
 #if defined(X_ENABLE_PIN) && X_ENABLE_PIN > -1
-			if(!X_ENABLE_ON) p_x_enable = 1; //WRITE(X_ENABLE_PIN,1);
+	if(!X_ENABLE_ON) p_x_enable = 1; //WRITE(X_ENABLE_PIN,1);
 #endif
 #if defined(X2_ENABLE_PIN) && X2_ENABLE_PIN > -1
-			if(!X_ENABLE_ON) p_x2_enable = 1; //WRITE(X2_ENABLE_PIN,1);
+	if(!X_ENABLE_ON) p_x2_enable = 1; //WRITE(X2_ENABLE_PIN,1);
 #endif
 #if defined(Y_ENABLE_PIN) && Y_ENABLE_PIN > -1
-			if(!Y_ENABLE_ON) p_y_enable = 1; //WRITE(Y_ENABLE_PIN,1);
+	if(!Y_ENABLE_ON) p_y_enable = 1; //WRITE(Y_ENABLE_PIN,1);
 #endif
 #if defined(Z_ENABLE_PIN) && Z_ENABLE_PIN > -1
-			if(!Z_ENABLE_ON) p_z_enable = 1; //WRITE(Z_ENABLE_PIN,1);
+	if(!Z_ENABLE_ON) p_z_enable = 1; //WRITE(Z_ENABLE_PIN,1);
 
 #if defined(Z_DUAL_STEPPER_DRIVERS) && defined(Z2_ENABLE_PIN) && (Z2_ENABLE_PIN > -1)
-			if(!Z_ENABLE_ON) p_z2_enable = 1; //WRITE(Z2_ENABLE_PIN,1);
+	if(!Z_ENABLE_ON) p_z2_enable = 1; //WRITE(Z2_ENABLE_PIN,1);
 #endif
 #endif
 #if defined(E0_ENABLE_PIN) && (E0_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e0_enable = 1; //WRITE(E0_ENABLE_PIN,1);
+	if(!E_ENABLE_ON) p_e0_enable = 1; //WRITE(E0_ENABLE_PIN,1);
 #endif
 #if defined(E1_ENABLE_PIN) && (E1_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e1_enable = 1; //WRITE(E1_ENABLE_PIN,1);
+	if(!E_ENABLE_ON) p_e1_enable = 1; //WRITE(E1_ENABLE_PIN,1);
 #endif
 #if defined(E2_ENABLE_PIN) && (E2_ENABLE_PIN > -1)
-			if(!E_ENABLE_ON) p_e2_enable = 1; //WRITE(E2_ENABLE_PIN,1);
+	if(!E_ENABLE_ON) p_e2_enable = 1; //WRITE(E2_ENABLE_PIN,1);
 #endif
 
-			//endstops and pullups
+	//endstops and pullups
 
 #if defined(X_MIN_PIN) && X_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_XMIN
-			p_x_min = 1; //WRITE(X_MIN_PIN,1);
+	p_x_min = 1; //WRITE(X_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(Y_MIN_PIN) && Y_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_YMIN
-			p_y_min = 1 ;//WRITE(Y_MIN_PIN,1);
+	p_y_min = 1 ;//WRITE(Y_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 #ifdef ENDSTOPPULLUP_ZMIN
-			p_z_min = 1; //WRITE(Z_MIN_PIN,1);
+	p_z_min = 1; //WRITE(Z_MIN_PIN,1);
 #endif
 #endif
 
 #if defined(X_MAX_PIN) && X_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_XMAX
-			p_x_max = 1; //WRITE(X_MAX_PIN,1);
+	p_x_max = 1; //WRITE(X_MAX_PIN,1);
 #endif
 #endif
 
 #if defined(Y_MAX_PIN) && Y_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_YMAX
-			p_y_max = 1; //WRITE(Y_MAX_PIN,1);
+	p_y_max = 1; //WRITE(Y_MAX_PIN,1);
 #endif
 #endif
 
 #if defined(Z_MAX_PIN) && Z_MAX_PIN > -1
 #ifdef ENDSTOPPULLUP_ZMAX
-			p_z_max = 1; //WRITE(Z_MAX_PIN,1);
+	p_z_max = 1; //WRITE(Z_MAX_PIN,1);
 #endif
 #endif
 
-			//Initialize Step Pins
+	//Initialize Step Pins
 #if defined(X_STEP_PIN) && (X_STEP_PIN > -1)
-			p_x_step = INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN,INVERT_X_STEP_PIN);
-			disable_x();
+	p_x_step = INVERT_X_STEP_PIN; //WRITE(X_STEP_PIN,INVERT_X_STEP_PIN);
+	disable_x();
 #endif
 #if defined(X2_STEP_PIN) && (X2_STEP_PIN > -1)
-			p_x2_step = INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN,INVERT_X_STEP_PIN);
-			disable_x();
+	p_x2_step = INVERT_X_STEP_PIN; //WRITE(X2_STEP_PIN,INVERT_X_STEP_PIN);
+	disable_x();
 #endif
 #if defined(Y_STEP_PIN) && (Y_STEP_PIN > -1)
-			p_y_step = INVERT_Y_STEP_PIN; //WRITE(Y_STEP_PIN,INVERT_Y_STEP_PIN);
-			disable_y();
+	p_y_step = INVERT_Y_STEP_PIN; //WRITE(Y_STEP_PIN,INVERT_Y_STEP_PIN);
+	disable_y();
 #endif
 #if defined(Z_STEP_PIN) && (Z_STEP_PIN > -1)
-			p_z_step = INVERT_Z_STEP_PIN;//WRITE(Z_STEP_PIN,INVERT_Z_STEP_PIN);
+	p_z_step = INVERT_Z_STEP_PIN;//WRITE(Z_STEP_PIN,INVERT_Z_STEP_PIN);
 #if defined(Z_DUAL_STEPPER_DRIVERS) && defined(Z2_STEP_PIN) && (Z2_STEP_PIN > -1)
-			p_z2_step = INVERT_Z_STEP; //WRITE(Z2_STEP_PIN,INVERT_Z_STEP_PIN);
+	p_z2_step = INVERT_Z_STEP; //WRITE(Z2_STEP_PIN,INVERT_Z_STEP_PIN);
 #endif
-			disable_z();
+	disable_z();
 #endif
 #if defined(E0_STEP_PIN) && (E0_STEP_PIN > -1)
-			p_e0_step = INVERT_E_STEP_PIN; //WRITE(E0_STEP_PIN,INVERT_E_STEP_PIN);
-			disable_e0();
+	p_e0_step = INVERT_E_STEP_PIN; //WRITE(E0_STEP_PIN,INVERT_E_STEP_PIN);
+	disable_e0();
 #endif
 #if defined(E1_STEP_PIN) && (E1_STEP_PIN > -1)
-			p_e1_step = INVERT_E_STEP_PIN; //WRITE(E1_STEP_PIN,INVERT_E_STEP_PIN);
-			disable_e1();
+	p_e1_step = INVERT_E_STEP_PIN; //WRITE(E1_STEP_PIN,INVERT_E_STEP_PIN);
+	disable_e1();
 #endif
 #if defined(E2_STEP_PIN) && (E2_STEP_PIN > -1)
-			p_e2_step = INVERT_E_STEP_PIN;//WRITE(E2_STEP_PIN,INVERT_E_STEP_PIN);
-			disable_e2();
+	p_e2_step = INVERT_E_STEP_PIN;//WRITE(E2_STEP_PIN,INVERT_E_STEP_PIN);
+	disable_e2();
 #endif
 
-			stepper_timer.attach_us(the_int, 1000);
+	stepper_timer.attach_us(the_int, 9);
 
-			ENABLE_STEPPER_DRIVER_INTERRUPT();
+	ENABLE_STEPPER_DRIVER_INTERRUPT();
 
 #ifdef ADVANCE
-			e_steps[0] = 0;
-			e_steps[1] = 0;
-			e_steps[2] = 0;
-			TIMSK0 |= (1<<OCIE0A);
+	e_steps[0] = 0;
+	e_steps[1] = 0;
+	e_steps[2] = 0;
+	TIMSK0 |= (1<<OCIE0A);
 #endif //ADVANCE
 
-			enable_endstops(true); // Start with endstops active. After homing they can be disabled
-			sei();
-		}
+	enable_endstops(true); // Start with endstops active. After homing they can be disabled
+	sei();
+}
 
+// Block until all buffered steps are executed
+void st_synchronize()
+{
+	while( blocks_queued()) {
+		manage_heater();
+		manage_inactivity();
+	}
+}
 
-		// Block until all buffered steps are executed
-		void st_synchronize()
-		{
-			while( blocks_queued()) {
-				manage_heater();
-				manage_inactivity();
-			}
-		}
+void st_set_position(const long &x, const long &y, const long &z, const long &e)
+{
+	CRITICAL_SECTION_START;
+	count_position[X_AXIS] = x;
+	count_position[Y_AXIS] = y;
+	count_position[Z_AXIS] = z;
+	count_position[E_AXIS] = e;
+	CRITICAL_SECTION_END;
+}
 
-		void st_set_position(const long &x, const long &y, const long &z, const long &e)
-		{
-			CRITICAL_SECTION_START;
-			count_position[X_AXIS] = x;
-			count_position[Y_AXIS] = y;
-			count_position[Z_AXIS] = z;
-			count_position[E_AXIS] = e;
-			CRITICAL_SECTION_END;
-		}
+void st_set_e_position(const long &e)
+{
+	CRITICAL_SECTION_START;
+	count_position[E_AXIS] = e;
+	CRITICAL_SECTION_END;
+}
 
-		void st_set_e_position(const long &e)
-		{
-			CRITICAL_SECTION_START;
-			count_position[E_AXIS] = e;
-			CRITICAL_SECTION_END;
-		}
+long st_get_position(uint8_t axis)
+{
+	long count_pos;
+	CRITICAL_SECTION_START;
+	count_pos = count_position[axis];
+	CRITICAL_SECTION_END;
+	return count_pos;
+}
 
-		long st_get_position(uint8_t axis)
-		{
-			long count_pos;
-			CRITICAL_SECTION_START;
-			count_pos = count_position[axis];
-			CRITICAL_SECTION_END;
-			return count_pos;
-		}
+void finishAndDisableSteppers()
+{
+	st_synchronize();
+	disable_x();
+	disable_y();
+	disable_z();
+	disable_e0();
+	disable_e1();
+	disable_e2();
+}
 
-		void finishAndDisableSteppers()
-		{
-			st_synchronize();
-			disable_x();
-			disable_y();
-			disable_z();
-			disable_e0();
-			disable_e1();
-			disable_e2();
-		}
-
-		void quickStop()
-		{
-			DISABLE_STEPPER_DRIVER_INTERRUPT();
-			while(blocks_queued())
-				plan_discard_current_block();
-			current_block = NULL;
-			ENABLE_STEPPER_DRIVER_INTERRUPT();
-		}
+void quickStop()
+{
+	DISABLE_STEPPER_DRIVER_INTERRUPT();
+	while(blocks_queued())
+		plan_discard_current_block();
+	current_block = NULL;
+	ENABLE_STEPPER_DRIVER_INTERRUPT();
+	}
